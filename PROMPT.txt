@@ -1,0 +1,2261 @@
+# PROMPT MESTRE — PLATAFORMA DIGITAL DE VENDAS, CRM, WHATSAPP, IA E AUTOMAÇÕES COM ODVIX + MERCOS + N8N
+
+## 1. PAPEL
+
+Você é um arquiteto de software e desenvolvedor full-stack sênior responsável por projetar e implementar uma plataforma comercial completa para uma distribuidora/fabricante de produtos de limpeza.
+
+O sistema não deve ser apenas um CRM ou chatbot.
+
+O objetivo é criar um **Sistema Operacional de Vendas Digitais**, capaz de:
+
+* identificar clientes que precisam comprar;
+* identificar clientes em risco de perder;
+* identificar oportunidades de recompra;
+* encontrar leads;
+* conversar automaticamente pelo WhatsApp;
+* recomendar produtos;
+* montar pedidos;
+* recuperar vendas perdidas;
+* executar campanhas;
+* encaminhar negociações complexas para um representante;
+* sincronizar tudo com o ERP ODVIX;
+* integrar dados do Mercos;
+* utilizar IA;
+* executar automações através do n8n;
+* gerar inteligência comercial;
+* reduzir drasticamente a dependência de vendedores externos.
+
+O fluxo principal deve ser:
+
+DIGITAL → IDENTIFICAÇÃO → WHATSAPP → IA → NECESSIDADE → RECOMENDAÇÃO → CARRINHO → PEDIDO → ERP → PÓS-VENDA → RECOMPRA
+
+O representante humano deve entrar somente quando sua intervenção aumentar a probabilidade de fechamento ou for necessária.
+
+---
+
+# 2. REGRA ARQUITETURAL MAIS IMPORTANTE
+
+## N8N NÃO É O CORE DO SISTEMA
+
+O n8n deve ser utilizado como:
+
+* motor de workflows;
+* automação;
+* orquestração;
+* integração;
+* campanhas;
+* notificações;
+* processos assíncronos;
+* automações de IA;
+* follow-ups;
+* processamento de eventos.
+
+Porém, o n8n NÃO deve ser o proprietário das regras críticas do negócio.
+
+A aplicação principal continua sendo a fonte de verdade para:
+
+* clientes;
+* produtos;
+* preços;
+* estoque;
+* pedidos;
+* condições comerciais;
+* usuários;
+* permissões;
+* vendedores/representantes;
+* CRM;
+* leads;
+* histórico;
+* regras comerciais;
+* integrações;
+* auditoria.
+
+Nunca implementar uma regra crítica exclusivamente dentro de um workflow n8n.
+
+---
+
+# 3. ARQUITETURA
+
+Utilize inicialmente uma arquitetura de **modular monolith**, evitando microserviços prematuros.
+
+Arquitetura:
+
+```text
+                         ┌─────────────────┐
+                         │      ODVIX      │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │ ODVIX ADAPTER   │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+┌──────────────┐        ┌─────────────────────────┐
+│    MERCOS    │───────▶│                         │
+└──────────────┘        │   CORE APPLICATION      │
+                        │                         │
+┌──────────────┐        │ CRM                     │
+│   WHATSAPP   │◀──────▶│ Customers               │
+└──────────────┘        │ Products                │
+                        │ Pricing                 │
+                        │ Orders                  │
+                        │ Leads                   │
+                        │ Sales Intelligence      │
+                        │ AI                      │
+                        │ AutomationService       │
+                        └───────────┬─────────────┘
+                                    │
+                              Events / API
+                                    │
+                                    ▼
+                           ┌─────────────────┐
+                           │      N8N        │
+                           │                 │
+                           │ Workflows       │
+                           │ Campaigns       │
+                           │ AI automation   │
+                           │ Notifications   │
+                           │ Integrations    │
+                           │ Follow-ups      │
+                           └─────────────────┘
+```
+
+---
+
+# 4. STACK
+
+Utilize:
+
+### Frontend
+
+* Next.js
+* React
+* TypeScript
+* Tailwind CSS
+* componentes reutilizáveis
+* responsivo
+* PWA quando fizer sentido
+
+### Backend
+
+* Node.js
+* TypeScript
+* API REST
+* arquitetura modular
+* validação com schemas
+* autenticação
+* RBAC
+
+### Banco
+
+* PostgreSQL
+* Prisma ORM
+
+### Cache / filas
+
+* Redis
+* BullMQ
+
+### Automação
+
+* n8n
+
+### Infraestrutura
+
+* Docker
+* Docker Compose
+* Nginx
+* PM2 quando necessário
+
+A aplicação deve ser preparada para produção.
+
+---
+
+# 5. ESTRUTURA DE MÓDULOS
+
+Organize o backend aproximadamente assim:
+
+```text
+src/
+  modules/
+    auth/
+    users/
+    customers/
+    leads/
+    products/
+    pricing/
+    inventory/
+    orders/
+    sales/
+    crm/
+    whatsapp/
+    campaigns/
+    recommendations/
+    automation/
+    ai/
+    analytics/
+    notifications/
+    integrations/
+      odvix/
+      mercos/
+    representatives/
+    audit/
+```
+
+Cada módulo deve possuir:
+
+* controller
+* service
+* repository quando necessário
+* schemas
+* types
+* events
+* testes
+
+Evitar lógica de negócio espalhada pelos controllers.
+
+---
+
+# 6. ODVIX
+
+Criar uma camada:
+
+```text
+ODVIXAdapter
+```
+
+Nunca espalhar chamadas do ODVIX pelo sistema inteiro.
+
+Criar métodos como:
+
+```typescript
+getCustomers()
+getCustomer(id)
+getCustomerByPhone(phone)
+
+getProducts()
+getProduct(id)
+searchProducts(query)
+
+getStock(productId)
+getPrices(customerId, productId)
+
+getOrders()
+getOrder(id)
+
+createOrder(order)
+cancelOrder(orderId)
+
+getSalesHistory(customerId)
+getPaymentTerms(customerId)
+```
+
+Implementar:
+
+* timeout;
+* retry;
+* logs;
+* tratamento de erros;
+* circuit breaker quando necessário;
+* cache;
+* sincronização incremental;
+* idempotência;
+* filas para operações assíncronas;
+* controle de rate limit.
+
+---
+
+# 7. MERCOS
+
+Criar:
+
+```text
+MercosAdapter
+```
+
+O Mercos deve ser tratado como integração externa.
+
+Não permitir dependência direta do domínio principal em detalhes específicos da API do Mercos.
+
+Implementar sincronização de:
+
+* clientes;
+* produtos;
+* preços;
+* pedidos;
+* vendedores;
+* condições comerciais;
+* informações relevantes de vendas.
+
+Criar uma camada de normalização.
+
+---
+
+# 8. FONTE DE VERDADE
+
+Criar configuração por entidade:
+
+```text
+customer_source
+product_source
+price_source
+stock_source
+order_source
+sales_source
+```
+
+Por exemplo:
+
+```text
+Clientes → ODVIX
+Produtos → ODVIX
+Estoque → ODVIX
+Pedidos → ODVIX
+CRM → Plataforma
+Leads → Plataforma
+Conversas → Plataforma
+Automação → n8n
+```
+
+Não assumir que todos os sistemas terão os mesmos IDs.
+
+Criar tabela de mapeamento:
+
+```text
+ExternalEntityMapping
+```
+
+Exemplo:
+
+```text
+system = ODVIX
+entity = CUSTOMER
+external_id = 12345
+internal_id = uuid
+```
+
+---
+
+# 9. CRM
+
+Criar CRM completo.
+
+Cada cliente deve possuir:
+
+* dados cadastrais;
+* telefone;
+* WhatsApp;
+* cidade;
+* região;
+* endereço;
+* histórico de compras;
+* produtos comprados;
+* frequência;
+* ticket médio;
+* última compra;
+* intervalo médio entre compras;
+* categorias compradas;
+* margem estimada;
+* condições comerciais;
+* histórico de contatos;
+* conversas;
+* pedidos;
+* campanhas recebidas;
+* respostas;
+* leads relacionados;
+* score;
+* risco de churn;
+* probabilidade de recompra.
+
+Criar timeline:
+
+```text
+Cliente
+ ├── compra
+ ├── conversa
+ ├── campanha
+ ├── resposta
+ ├── pedido
+ ├── atendimento
+ ├── alteração
+ └── evento
+```
+
+---
+
+# 10. CLASSIFICAÇÃO AUTOMÁTICA
+
+Criar classificação dinâmica:
+
+```text
+LEAD
+NOVO
+ATIVO
+OCASIONAL
+EM_RISCO
+INATIVO
+PERDIDO
+VIP
+```
+
+Não utilizar apenas regras fixas.
+
+Exemplo:
+
+Um cliente que compra normalmente a cada 15 dias e está há 20 dias sem comprar pode estar em risco.
+
+Outro que compra a cada 60 dias não deve ser classificado como inativo após 20 dias.
+
+Criar:
+
+```text
+average_purchase_interval
+days_since_last_purchase
+reorder_probability
+churn_risk_score
+customer_value_score
+```
+
+---
+
+# 11. INTELIGÊNCIA DE RECOMPRA
+
+O sistema deve descobrir:
+
+* quando o cliente provavelmente precisará comprar novamente;
+* quais produtos ele costuma comprar;
+* quantidade média;
+* intervalo médio;
+* produtos comprados juntos;
+* produtos que parou de comprar;
+* produtos que deveria comprar;
+* queda de consumo.
+
+Exemplo:
+
+```text
+Cliente:
+Compra detergente a cada 18 dias.
+
+Última compra:
+há 17 dias.
+
+Sistema:
+alta probabilidade de recompra.
+```
+
+Isso deve gerar um evento:
+
+```text
+customer.reorder_opportunity
+```
+
+---
+
+# 12. CLIENTES INATIVOS
+
+Criar motor de recuperação.
+
+Filtros:
+
+```text
+sem comprar há X dias
+queda de frequência
+queda de ticket
+queda de quantidade
+produto não comprado
+cliente em risco
+```
+
+Antes de enviar mensagem:
+
+1. consultar histórico;
+2. identificar produtos habituais;
+3. verificar estoque;
+4. consultar preço;
+5. analisar últimas compras;
+6. identificar possível oportunidade;
+7. gerar abordagem personalizada;
+8. enviar WhatsApp;
+9. registrar campanha;
+10. aguardar resposta.
+
+---
+
+# 13. WHATSAPP
+
+Criar módulo completo de WhatsApp.
+
+O sistema deve suportar:
+
+* mensagens recebidas;
+* mensagens enviadas;
+* templates;
+* mídia;
+* documentos;
+* áudio quando suportado;
+* histórico;
+* contexto da conversa;
+* identificação automática do cliente;
+* identificação de lead;
+* atendimento humano;
+* chatbot;
+* IA;
+* campanhas;
+* follow-up.
+
+Toda conversa deve possuir:
+
+```text
+Conversation
+Message
+Participant
+Channel
+Status
+AssignedUser
+Customer
+Lead
+```
+
+---
+
+# 14. CHATBOT COM IA
+
+A IA deve ser comercial, não apenas conversacional.
+
+Ela deve conseguir:
+
+* identificar cliente;
+* consultar produtos;
+* consultar preço;
+* consultar estoque;
+* consultar histórico;
+* recomendar produtos;
+* responder dúvidas;
+* montar carrinho;
+* alterar quantidade;
+* remover produto;
+* criar pedido;
+* consultar pedido;
+* encaminhar para humano.
+
+Criar ferramentas internas:
+
+```text
+get_customer
+get_customer_purchase_history
+search_products
+get_product
+get_product_price
+get_stock
+get_customer_price
+get_payment_terms
+get_recommendations
+create_cart
+update_cart
+create_order
+get_order
+cancel_order
+handoff_to_human
+```
+
+REGRA ABSOLUTA:
+
+A IA nunca pode inventar:
+
+* preço;
+* estoque;
+* desconto;
+* produto;
+* condição;
+* pedido;
+* prazo;
+* informação de cliente.
+
+Sempre consultar a API interna.
+
+---
+
+# 15. CARRINHO
+
+Criar carrinho persistente.
+
+Exemplo:
+
+```text
+Cliente:
+"Quero 10 detergentes e 5 desinfetantes."
+
+IA:
+cria carrinho.
+
+Cliente:
+"Coloca mais 3."
+
+IA:
+atualiza carrinho.
+
+Cliente:
+"Pode fechar."
+
+Sistema:
+valida estoque
+→ valida preço
+→ valida condições
+→ cria pedido
+→ envia ODVIX
+→ registra origem
+```
+
+Registrar:
+
+```text
+order_origin = WHATSAPP_AI
+```
+
+Outras origens:
+
+```text
+WHATSAPP_HUMAN
+WEB
+REPRESENTATIVE
+CAMPAIGN
+RECOVERY
+REORDER
+```
+
+---
+
+# 16. HANDOFF HUMANO
+
+A IA deve encaminhar para representante quando:
+
+* cliente solicitar humano;
+* negociação de desconto;
+* negociação de condição;
+* reclamação;
+* pedido complexo;
+* cliente VIP;
+* pedido de alto valor;
+* problema de pagamento;
+* baixa confiança da IA;
+* oportunidade estratégica.
+
+Ao encaminhar, entregar ao representante um resumo:
+
+```text
+Cliente:
+Última compra:
+Ticket médio:
+Produtos habituais:
+O que está querendo:
+Carrinho:
+Histórico recente:
+Possível objeção:
+Sugestão de abordagem:
+```
+
+---
+
+# 17. N8N — MOTOR DE AUTOMAÇÃO
+
+Integrar o n8n como componente oficial da arquitetura.
+
+A aplicação deverá possuir:
+
+```text
+AutomationService
+```
+
+Responsável por:
+
+* publicar eventos;
+* disparar workflows;
+* consultar execução;
+* registrar workflow;
+* controlar idempotência;
+* registrar erros;
+* permitir retry;
+* correlacionar eventos.
+
+---
+
+# 18. EVENT BUS
+
+Criar catálogo de eventos.
+
+Exemplos:
+
+```text
+customer.created
+customer.updated
+customer.inactive
+customer.at_risk
+customer.reorder_opportunity
+
+lead.created
+lead.updated
+lead.qualified
+lead.converted
+
+conversation.created
+customer.replied
+customer.requested_human
+
+cart.created
+cart.abandoned
+
+order.created
+order.confirmed
+order.cancelled
+order.failed
+
+product.low_stock
+
+campaign.created
+campaign.sent
+campaign.replied
+
+payment.overdue
+```
+
+Eventos devem possuir:
+
+```json
+{
+  "eventId": "uuid",
+  "eventType": "customer.inactive",
+  "occurredAt": "timestamp",
+  "entityId": "uuid",
+  "tenantId": "uuid",
+  "data": {},
+  "correlationId": "uuid"
+}
+```
+
+---
+
+# 19. WEBHOOKS N8N
+
+Criar webhooks seguros.
+
+Nunca aceitar chamadas anônimas.
+
+Implementar:
+
+* autenticação;
+* assinatura;
+* secret;
+* timestamp;
+* replay protection;
+* idempotency key;
+* logs.
+
+Exemplo:
+
+```text
+POST /api/automation/events
+POST /api/automation/actions
+POST /api/automation/webhooks
+```
+
+---
+
+# 20. APLICAÇÃO → N8N
+
+Quando algo acontecer no sistema:
+
+```text
+CustomerInactive
+        ↓
+AutomationService
+        ↓
+Event
+        ↓
+N8N
+        ↓
+Workflow
+```
+
+Exemplo:
+
+```text
+customer.inactive
+        ↓
+N8N
+        ↓
+buscar histórico
+        ↓
+buscar produtos
+        ↓
+consultar estoque
+        ↓
+gerar mensagem IA
+        ↓
+WhatsApp
+        ↓
+aguardar resposta
+```
+
+---
+
+# 21. N8N → APLICAÇÃO
+
+O n8n nunca deve acessar diretamente o PostgreSQL principal.
+
+Ele deve consumir APIs internas.
+
+Exemplo:
+
+```text
+N8N
+ ↓
+GET /api/customers/:id
+ ↓
+Core
+ ↓
+PostgreSQL
+```
+
+Para criar pedido:
+
+```text
+N8N
+ ↓
+POST /api/orders
+ ↓
+OrderService
+ ↓
+validação
+ ↓
+ODVIX
+```
+
+Nunca:
+
+```text
+N8N → PostgreSQL → INSERT orders
+```
+
+---
+
+# 22. API DE AUTOMAÇÃO
+
+Criar APIs específicas para o n8n.
+
+Exemplo:
+
+```text
+GET /automation/customers/inactive
+GET /automation/customers/:id/history
+GET /automation/customers/:id/recommendations
+
+GET /automation/products
+GET /automation/products/:id/stock
+GET /automation/products/:id/price
+
+POST /automation/messages/send
+POST /automation/orders/create
+
+POST /automation/handoff
+POST /automation/campaigns
+```
+
+---
+
+# 23. WORKFLOWS INICIAIS DO N8N
+
+Criar workflows reais.
+
+## Workflow 1 — Cliente Inativo
+
+```text
+Schedule
+ ↓
+buscar clientes em risco
+ ↓
+filtrar clientes elegíveis
+ ↓
+buscar histórico
+ ↓
+calcular oportunidade
+ ↓
+buscar produtos
+ ↓
+consultar estoque
+ ↓
+gerar mensagem IA
+ ↓
+WhatsApp
+ ↓
+aguardar resposta
+ ↓
+┌─────────────────────┐
+│                     │
+responde             não responde
+│                     │
+↓                     ↓
+IA                    follow-up
+│                     │
+├── compra            └── encerrar
+│
+└── humano
+```
+
+---
+
+# 24. WORKFLOW 2 — NOVO LEAD
+
+```text
+Lead criado
+ ↓
+qualificar
+ ↓
+identificar cidade
+ ↓
+identificar segmento
+ ↓
+estimar potencial
+ ↓
+WhatsApp
+ ↓
+apresentar catálogo
+ ↓
+entender necessidade
+ ↓
+recomendar produtos
+ ↓
+criar oportunidade
+ ↓
+pedido
+```
+
+---
+
+# 25. WORKFLOW 3 — CARRINHO ABANDONADO
+
+```text
+Cart abandoned
+ ↓
+esperar
+ ↓
+WhatsApp
+ ↓
+"Você ainda precisa dos produtos?"
+ ↓
+resposta
+ ↓
+IA
+ ↓
+recuperar carrinho
+ ↓
+pedido
+```
+
+---
+
+# 26. WORKFLOW 4 — RECOMPRA
+
+```text
+customer.reorder_opportunity
+ ↓
+buscar produtos habituais
+ ↓
+calcular quantidade sugerida
+ ↓
+verificar estoque
+ ↓
+WhatsApp
+ ↓
+cliente confirma
+ ↓
+carrinho
+ ↓
+pedido
+```
+
+---
+
+# 27. WORKFLOW 5 — CLIENTE NOVO
+
+Após primeiro pedido:
+
+```text
+order.created
+ ↓
+esperar período configurável
+ ↓
+WhatsApp
+ ↓
+verificar satisfação
+ ↓
+identificar nova necessidade
+ ↓
+cross-sell
+```
+
+---
+
+# 28. WORKFLOW 6 — PÓS-VENDA
+
+Após entrega:
+
+```text
+pedido entregue
+ ↓
+aguardar
+ ↓
+WhatsApp
+ ↓
+"Deu tudo certo com seu pedido?"
+ ↓
+positivo → relacionamento
+negativo → atendimento humano
+```
+
+---
+
+# 29. WORKFLOW 7 — RECUPERAÇÃO DE VENDA PERDIDA
+
+Detectar:
+
+* pediu preço e não comprou;
+* pediu produto e não comprou;
+* abandonou carrinho;
+* recusou por preço;
+* produto estava sem estoque;
+* pedido caiu;
+* comprou menos que normalmente compra.
+
+Criar:
+
+```text
+LostSale
+```
+
+Com:
+
+```text
+reason
+estimated_value
+customer
+products
+conversation
+created_at
+recovered_at
+```
+
+---
+
+# 30. CROSS-SELL
+
+O sistema deve descobrir:
+
+```text
+Clientes que compram X
+mas não compram Y
+```
+
+Exemplo:
+
+```text
+Compra:
+detergente
+
+Não compra:
+desinfetante
+```
+
+Se existir forte correlação entre produtos, criar oportunidade.
+
+---
+
+# 31. QUEDA DE CONSUMO
+
+Detectar:
+
+```text
+ticket caiu
+quantidade caiu
+frequência caiu
+categoria desapareceu
+produto deixou de comprar
+```
+
+Exemplo:
+
+```text
+Média:
+R$ 900
+
+Últimas compras:
+R$ 500
+R$ 450
+R$ 420
+```
+
+Gerar:
+
+```text
+customer.consumption_drop
+```
+
+---
+
+# 32. LEADS REGIONAIS
+
+Criar módulo de leads.
+
+Dados:
+
+```text
+nome
+empresa
+telefone
+cidade
+estado
+segmento
+potencial
+origem
+status
+responsável
+```
+
+Pipeline:
+
+```text
+LEAD
+ ↓
+CONTATO
+ ↓
+INTERESSADO
+ ↓
+QUALIFICADO
+ ↓
+NEGOCIAÇÃO
+ ↓
+PRIMEIRO PEDIDO
+ ↓
+CLIENTE
+```
+
+Permitir segmentação por:
+
+* cidade;
+* região;
+* segmento;
+* potencial;
+* origem;
+* status.
+
+---
+
+# 33. PROSPECÇÃO REGIONAL
+
+Criar inteligência geográfica.
+
+Exemplo:
+
+```text
+Cidade X
+
+Clientes atuais:
+27
+
+Leads:
+83
+
+Potencial estimado:
+alto
+```
+
+Mostrar oportunidades por região.
+
+---
+
+# 34. CAMPANHAS
+
+Criar sistema de campanhas.
+
+Filtros:
+
+```text
+cidade
+estado
+segmento
+última compra
+ticket médio
+produtos comprados
+produto não comprado
+dias sem comprar
+VIP
+risco
+potencial
+```
+
+Exemplo:
+
+```text
+Campanha:
+Clientes que compram detergente
+mas não compraram desinfetante
+nos últimos 90 dias.
+```
+
+Executar através do n8n.
+
+---
+
+# 35. BUILDER DE AUTOMAÇÕES
+
+Criar módulo:
+
+```text
+Automação
+```
+
+No sistema principal.
+
+Mostrar:
+
+```text
+Nome
+Status
+Última execução
+Execuções
+Sucessos
+Falhas
+```
+
+Exemplos:
+
+```text
+Cliente inativo
+Recompra
+Novo cliente
+Lead novo
+Carrinho abandonado
+Pós-venda
+Recuperação de venda
+```
+
+O n8n continua sendo o motor de execução.
+
+A aplicação pode armazenar:
+
+```text
+workflow_id
+workflow_name
+workflow_version
+active
+last_execution
+```
+
+Não duplicar o workflow engine do n8n dentro da aplicação sem necessidade.
+
+---
+
+# 36. CONTROLE DE EXECUÇÃO
+
+Criar:
+
+```text
+AutomationExecution
+```
+
+Campos:
+
+```text
+id
+workflowId
+eventId
+status
+startedAt
+finishedAt
+error
+n8nExecutionId
+correlationId
+```
+
+Estados:
+
+```text
+PENDING
+RUNNING
+SUCCESS
+FAILED
+CANCELLED
+RETRYING
+```
+
+Permitir:
+
+* retry;
+* replay;
+* visualização de erro;
+* rastreamento.
+
+---
+
+# 37. IDEMPOTÊNCIA
+
+Todos os eventos críticos devem ser idempotentes.
+
+Exemplo:
+
+Se:
+
+```text
+order.created
+```
+
+for recebido duas vezes, o sistema não pode criar dois pedidos.
+
+Utilizar:
+
+```text
+eventId
+idempotencyKey
+externalId
+```
+
+---
+
+# 38. DEAD LETTER
+
+Criar tratamento para eventos que falharam repetidamente.
+
+Exemplo:
+
+```text
+Workflow
+ ↓
+erro
+ ↓
+retry
+ ↓
+retry
+ ↓
+retry
+ ↓
+dead letter
+```
+
+O administrador deve conseguir visualizar e reprocessar.
+
+---
+
+# 39. IA COMERCIAL
+
+Criar um copiloto comercial.
+
+Perguntas como:
+
+```text
+"Quais clientes estão há mais tempo sem comprar?"
+
+"Quais clientes têm maior risco de perder?"
+
+"Quais produtos estão vendendo menos?"
+
+"Quanto recuperamos de vendas este mês?"
+
+"Quais clientes compram detergente mas não desinfetante?"
+
+"Quem deveria comprar novamente esta semana?"
+```
+
+A IA deve consultar APIs e dados reais.
+
+---
+
+# 40. DASHBOARD
+
+Criar dashboard executivo.
+
+KPIs:
+
+```text
+Vendas digitais
+Vendas WhatsApp
+Pedidos por IA
+Pedidos humanos
+Leads
+Conversão
+Clientes recuperados
+Vendas recuperadas
+Ticket médio
+Clientes inativos
+Clientes em risco
+Recompras previstas
+Carrinhos abandonados
+Vendas perdidas
+```
+
+---
+
+# 41. DASHBOARD OPERACIONAL
+
+Mostrar:
+
+```text
+Clientes para contatar hoje
+Leads novos
+Negociações abertas
+Pedidos pendentes
+Clientes em risco
+Vendas perdidas
+Follow-ups
+Falhas de automação
+```
+
+---
+
+# 42. REPRESENTANTE HUMANO
+
+O representante não deve precisar analisar todo o banco de clientes.
+
+O sistema deve entregar uma lista:
+
+```text
+ATENÇÃO HOJE
+
+1. Cliente A
+   Risco alto
+   Ticket médio: R$ X
+   Última compra: X dias
+   Produtos que normalmente compra: ...
+
+2. Cliente B
+   Negociação aberta
+   Pedido potencial: R$ X
+
+3. Cliente C
+   VIP
+   Consumo caiu 40%
+```
+
+---
+
+# 43. ORIGEM DAS VENDAS
+
+Todo pedido deve possuir:
+
+```text
+sales_channel
+sales_origin
+created_by
+automation_id
+campaign_id
+conversation_id
+representative_id
+```
+
+Exemplos:
+
+```text
+WHATSAPP_AI
+WHATSAPP_HUMAN
+WEB
+CAMPAIGN
+REORDER
+RECOVERY
+REPRESENTATIVE
+```
+
+Isso permitirá medir exatamente o impacto da digitalização.
+
+---
+
+# 44. OBSERVABILIDADE
+
+Implementar:
+
+* logs estruturados;
+* correlation ID;
+* request ID;
+* métricas;
+* erros;
+* auditoria;
+* logs de integração;
+* logs de workflow;
+* logs de WhatsApp;
+* logs de IA.
+
+Nunca registrar dados sensíveis desnecessariamente.
+
+---
+
+# 45. SEGURANÇA
+
+Implementar:
+
+* autenticação;
+* RBAC;
+* permissões;
+* sessões seguras;
+* secrets via environment variables;
+* validação de entrada;
+* rate limiting;
+* proteção de webhooks;
+* auditoria;
+* LGPD;
+* isolamento por empresa/tenant se SaaS;
+* controle de acesso aos dados.
+
+---
+
+# 46. MULTI-TENANT
+
+Estruturar o domínio para permitir evolução para SaaS.
+
+Adicionar:
+
+```text
+Tenant
+```
+
+e relacionar dados críticos:
+
+```text
+tenantId
+```
+
+Porém, não transformar a aplicação em SaaS excessivamente complexa na primeira versão.
+
+A arquitetura deve permitir isso posteriormente.
+
+---
+
+# 47. BANCO DE DADOS
+
+Criar schema Prisma consistente.
+
+Entidades principais:
+
+```text
+Tenant
+User
+Role
+Permission
+
+Customer
+CustomerExternalMapping
+
+Lead
+LeadActivity
+
+Product
+ProductExternalMapping
+ProductPrice
+Inventory
+
+Order
+OrderItem
+
+Conversation
+Message
+
+Campaign
+CampaignExecution
+
+Automation
+AutomationExecution
+AutomationEvent
+
+LostSale
+Recommendation
+
+CustomerScore
+
+Representative
+
+AuditLog
+
+Integration
+IntegrationSync
+IntegrationError
+```
+
+Adicionar índices apropriados.
+
+Principalmente:
+
+```text
+customer.phone
+customer.email
+customer.externalId
+
+order.customerId
+order.createdAt
+
+message.conversationId
+message.createdAt
+
+automationExecution.status
+automationExecution.createdAt
+```
+
+---
+
+# 48. N8N NO DOCKER
+
+Criar infraestrutura Docker para:
+
+```text
+app
+postgres
+redis
+n8n
+nginx
+```
+
+O n8n deve possuir persistência própria.
+
+IMPORTANTE:
+
+Não compartilhar diretamente as tabelas internas do n8n com o banco de domínio da aplicação.
+
+Preferencialmente:
+
+```text
+PostgreSQL
+ ├── database: application
+ └── database: n8n
+```
+
+ou isolamento equivalente.
+
+---
+
+# 49. COMUNICAÇÃO ENTRE SISTEMAS
+
+Usar:
+
+```text
+REST
+Webhooks
+Eventos
+Redis/BullMQ
+```
+
+Evitar acoplamento direto.
+
+---
+
+# 50. CONFIGURAÇÕES
+
+Tudo que puder mudar sem alterar código deve ser configurável.
+
+Exemplos:
+
+```text
+dias para considerar risco
+dias para considerar inatividade
+limite de follow-up
+horários permitidos para WhatsApp
+quantidade máxima de mensagens
+valor mínimo para handoff
+ticket para considerar VIP
+percentual de queda de consumo
+```
+
+---
+
+# 51. MOTOR DE REGRAS
+
+Criar inicialmente regras explicáveis.
+
+Não começar com machine learning complexo.
+
+Exemplo:
+
+```text
+reorder_probability =
+baseado em frequência histórica
+
+churn_risk =
+tempo desde última compra
++
+queda de frequência
++
+queda de ticket
++
+queda de quantidade
+```
+
+Posteriormente permitir modelos ML.
+
+---
+
+# 52. CATÁLOGO DIGITAL
+
+Criar catálogo web.
+
+Cada produto:
+
+* imagem;
+* descrição;
+* embalagem;
+* unidade;
+* preço quando permitido;
+* disponibilidade;
+* categorias.
+
+Permitir links rastreáveis:
+
+```text
+/catalog/product/:id?campaign=:campaignId
+```
+
+---
+
+# 53. QR CODE
+
+Permitir campanhas com QR Code.
+
+Exemplo:
+
+```text
+QR → WhatsApp → identifica campanha → identifica cliente → conversa
+```
+
+Registrar origem.
+
+---
+
+# 54. ADMINISTRAÇÃO
+
+Criar telas para:
+
+```text
+Usuários
+Permissões
+Integrações
+ODVIX
+Mercos
+WhatsApp
+n8n
+IA
+Campanhas
+Automação
+Parâmetros
+Auditoria
+```
+
+---
+
+# 55. INTEGRAÇÃO COM N8N
+
+Criar configuração:
+
+```text
+N8N_BASE_URL
+N8N_API_KEY
+N8N_WEBHOOK_SECRET
+```
+
+Nunca colocar secrets no frontend.
+
+Criar client:
+
+```text
+N8nClient
+```
+
+Com métodos:
+
+```typescript
+triggerWorkflow()
+getExecution()
+retryExecution()
+```
+
+---
+
+# 56. NÃO CRIAR DEPENDÊNCIA DO N8N PARA FUNCIONAMENTO BÁSICO
+
+Se o n8n estiver indisponível:
+
+* clientes continuam funcionando;
+* CRM continua funcionando;
+* produtos continuam funcionando;
+* pedidos continuam funcionando;
+* WhatsApp pode continuar funcionando quando possível;
+* dados continuam sendo gravados.
+
+Os eventos podem ficar em fila para processamento posterior.
+
+O n8n é uma camada de automação, não um ponto único de falha do ERP/CRM.
+
+---
+
+# 57. FILAS
+
+Usar Redis/BullMQ para processos como:
+
+```text
+sync_odvix
+sync_mercos
+send_whatsapp
+process_customer
+calculate_recommendations
+publish_event
+process_campaign
+```
+
+Implementar:
+
+* retry;
+* backoff;
+* prioridade;
+* dead letter;
+* observabilidade.
+
+---
+
+# 58. TESTES
+
+Implementar:
+
+### Unitários
+
+* regras de classificação;
+* cálculo de risco;
+* recomendações;
+* preços;
+* carrinho;
+* permissões.
+
+### Integração
+
+* ODVIX;
+* Mercos;
+* WhatsApp;
+* n8n.
+
+### E2E
+
+Fluxo:
+
+```text
+Cliente
+→ WhatsApp
+→ IA
+→ produto
+→ carrinho
+→ pedido
+→ ODVIX
+→ CRM
+```
+
+---
+
+# 59. DOCUMENTAÇÃO
+
+Criar:
+
+```text
+README.md
+ARCHITECTURE.md
+API.md
+INTEGRATIONS.md
+AUTOMATIONS.md
+N8N.md
+DEPLOY.md
+ENVIRONMENT.md
+DATABASE.md
+```
+
+Documentar:
+
+* arquitetura;
+* variáveis;
+* instalação;
+* Docker;
+* banco;
+* integrações;
+* webhooks;
+* eventos;
+* workflows n8n;
+* troubleshooting.
+
+---
+
+# 60. SEED
+
+Criar seed com:
+
+* usuários;
+* clientes fictícios;
+* produtos fictícios;
+* pedidos;
+* leads;
+* conversas;
+* campanhas;
+* oportunidades;
+* workflows.
+
+Permitir testar todo o sistema sem integração real.
+
+---
+
+# 61. PRINCÍPIO DE DESENVOLVIMENTO
+
+Não construir apenas telas bonitas.
+
+Cada tela deve estar ligada a:
+
+```text
+UI
+ ↓
+API
+ ↓
+Service
+ ↓
+Database
+ ↓
+Event
+ ↓
+Automation
+```
+
+Quando aplicável.
+
+Não criar mocks permanentes onde deveria existir implementação real.
+
+---
+
+# 62. EXPERIÊNCIA DO USUÁRIO
+
+A interface deve ser extremamente prática.
+
+O usuário precisa conseguir abrir o sistema e imediatamente saber:
+
+```text
+QUEM PRECISO CONTATAR?
+QUEM ESTÁ EM RISCO?
+QUEM ESTÁ PARA COMPRAR?
+QUAIS VENDAS ESTÃO SENDO PERDIDAS?
+QUAIS LEADS PRECISO ATENDER?
+QUAIS NEGOCIAÇÕES PRECISAM DE HUMANO?
+O QUE A IA VENDEU?
+QUANTO AS AUTOMAÇÕES RECUPERARAM?
+```
+
+---
+
+# 63. VISÃO PRINCIPAL
+
+Criar uma tela:
+
+## Central Comercial
+
+Cards:
+
+```text
+Vendas hoje
+Oportunidades
+Clientes em risco
+Leads
+Vendas recuperáveis
+Pedidos digitais
+Atendimentos humanos
+Automações
+```
+
+E uma lista:
+
+```text
+PRÓXIMAS AÇÕES
+```
+
+---
+
+# 64. PRINCIPAL DIFERENCIAL DO SISTEMA
+
+O sistema não deve esperar o vendedor descobrir que o cliente quer comprar.
+
+O sistema deve descobrir isso antes.
+
+Exemplo:
+
+```text
+Cliente compra a cada 22 dias.
+
+Hoje:
+21º dia.
+
+Sistema:
+"Cliente provavelmente precisa repor."
+
+↓
+n8n
+
+↓
+WhatsApp
+
+↓
+IA
+
+"Olá, identificamos que normalmente você repõe seus produtos nesta época.
+Posso separar os itens habituais para você?"
+
+↓
+Cliente
+
+"Pode."
+
+↓
+IA
+
+cria carrinho
+
+↓
+pedido
+
+↓
+ODVIX
+```
+
+Esse é o comportamento central do produto.
+
+---
+
+# 65. SEGUNDA ETAPA — INTELIGÊNCIA COMERCIAL
+
+Depois da primeira versão funcionando, adicionar:
+
+* previsão de demanda;
+* previsão de recompra;
+* churn prediction;
+* recomendação avançada;
+* previsão de ticket;
+* propensão à compra;
+* clustering de clientes;
+* análise de margem;
+* otimização de campanhas;
+* melhor horário de contato;
+* melhor canal;
+* próxima melhor ação.
+
+---
+
+# 66. PRIORIDADE DE IMPLEMENTAÇÃO
+
+Não tentar construir tudo simultaneamente.
+
+## FASE 1
+
+Fundação:
+
+* projeto;
+* autenticação;
+* banco;
+* CRM;
+* clientes;
+* produtos;
+* pedidos;
+* ODVIX;
+* Mercos.
+
+## FASE 2
+
+WhatsApp:
+
+* conversas;
+* mensagens;
+* chatbot;
+* carrinho;
+* pedidos.
+
+## FASE 3
+
+n8n:
+
+* integração;
+* eventos;
+* webhooks;
+* workflows;
+* automações.
+
+## FASE 4
+
+Inteligência:
+
+* recompra;
+* risco;
+* recomendações;
+* cross-sell;
+* vendas perdidas.
+
+## FASE 5
+
+Leads:
+
+* captura;
+* qualificação;
+* regional;
+* pipeline.
+
+## FASE 6
+
+IA avançada:
+
+* copiloto;
+* previsão;
+* next best action;
+* otimização.
+
+---
+
+# 67. REGRA PARA O CLAUDE CODE
+
+Antes de implementar qualquer coisa:
+
+1. analisar o projeto;
+2. analisar estrutura existente;
+3. verificar dependências;
+4. identificar código reutilizável;
+5. criar plano;
+6. implementar por módulos;
+7. testar;
+8. corrigir;
+9. documentar.
+
+Não destruir funcionalidades existentes sem necessidade.
+
+Não criar arquivos gigantes.
+
+Não colocar toda lógica em um único service.
+
+Não duplicar regras.
+
+Não criar abstrações desnecessárias.
+
+---
+
+# 68. RESULTADO ESPERADO
+
+Ao final, quero uma plataforma onde:
+
+```text
+ODVIX
+   ↓
+dados comerciais
+
+MERCOS
+   ↓
+dados de vendas
+
+CORE
+   ↓
+entende clientes
+
+IA
+   ↓
+entende conversas
+
+N8N
+   ↓
+automatiza ações
+
+WHATSAPP
+   ↓
+conversa
+
+CLIENTE
+   ↓
+compra
+
+CORE
+   ↓
+registra
+
+ODVIX
+   ↓
+processa pedido
+```
+
+E o ciclo se repete automaticamente.
+
+---
+
+# 69. OBJETIVO FINAL DO PRODUTO
+
+O sistema deve responder automaticamente às seguintes perguntas:
+
+### Quem vai comprar?
+
+→ previsão de recompra.
+
+### Quem está deixando de comprar?
+
+→ risco de churn.
+
+### Quem devo abordar?
+
+→ next best action.
+
+### O que devo oferecer?
+
+→ recomendação baseada no histórico.
+
+### Quando devo abordar?
+
+→ comportamento histórico.
+
+### Como abordar?
+
+→ WhatsApp + IA.
+
+### Quando preciso de humano?
+
+→ handoff inteligente.
+
+### Quanto dinheiro estou perdendo?
+
+→ lost sales.
+
+### Quanto dinheiro as automações recuperaram?
+
+→ revenue recovery.
+
+### Quais regiões possuem oportunidades?
+
+→ inteligência regional.
+
+### O que devo fazer hoje?
+
+→ agenda comercial inteligente.
+
+---
+
+# 70. REGRA FINAL
+
+O produto deve ser pensado como:
+
+**"Uma equipe comercial digital que trabalha 24 horas por dia."**
+
+A IA conversa.
+
+O n8n automatiza.
+
+O Core controla o negócio.
+
+O ODVIX executa o ERP.
+
+O Mercos fornece/integrará dados de força de vendas.
+
+O WhatsApp é o principal canal de relacionamento.
+
+O representante humano entra somente onde realmente agrega valor.
+
+A arquitetura deve permitir que novos canais, ERPs, CRMs, modelos de IA e workflows sejam adicionados posteriormente sem reescrever o núcleo do sistema.
+
+
+
+USE npx -y skills add dembrandt/dembrandt-skills --skill operational-expert-tool-ui --agent claude-code PARA O DESIGN
+
+e acrescente tambem um um módulo de “vendas que estamos deixando na mesa”. Para uma empresa de produtos de limpeza, isso pode ser extremamente valioso: o sistema cruza histórico, frequência e mix e aponta, por exemplo, “este cliente costumava comprar R$ 3 mil/mês e agora compra R$ 1.400; estes 4 produtos que ele costumava comprar deixaram de aparecer”. Isso dá ao representante uma lista de oportunidades muito mais útil do que simplesmente uma lista de clientes inativos.

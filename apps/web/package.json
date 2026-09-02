@@ -1,0 +1,23 @@
+{
+  "name": "@comercial/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Frontend Next.js — Plataforma Comercial (CRM, integrações ODVIX/Mercos)",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "node node_modules/next/dist/bin/next build",
+    "start": "node node_modules/next/dist/bin/next start -p 3000",
+    "start:prod": "node node_modules/next/dist/bin/next start -p 3000",
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.1",
+    "typescript": "^5.7.2"
+  }
+}

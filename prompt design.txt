@@ -1,0 +1,1719 @@
+# PROMPT — DESIGN SYSTEM E UI/UX DO SAAS DE VENDAS DIGITAIS
+
+## PAPEL
+
+Você é um Product Designer + UI/UX Designer + Frontend Engineer sênior especializado em SaaS B2B modernos.
+
+Você deve projetar e implementar uma interface premium para uma plataforma SaaS de:
+
+* CRM;
+* vendas;
+* WhatsApp;
+* IA;
+* automações;
+* n8n;
+* leads;
+* campanhas;
+* análise comercial;
+* pedidos;
+* clientes;
+* produtos;
+* inteligência comercial.
+
+O produto deve parecer um **SaaS comercial moderno de nível internacional**, e não um ERP tradicional.
+
+A interface precisa transmitir:
+
+* confiança;
+* inteligência;
+* velocidade;
+* organização;
+* tecnologia;
+* simplicidade;
+* profissionalismo.
+
+---
+
+# 1. REFERÊNCIA DE EXPERIÊNCIA
+
+A experiência visual deve estar no nível de produtos SaaS modernos como referência de qualidade e organização, sem copiar identidade visual de nenhum produto específico.
+
+Buscar inspiração em conceitos encontrados em:
+
+* Linear;
+* Stripe;
+* HubSpot;
+* Attio;
+* Intercom;
+* Vercel;
+* Ramp;
+* Salesforce Lightning;
+* Notion;
+* modernos CRMs B2B.
+
+A interface deve combinar:
+
+**simplicidade + densidade de informação + excelente hierarquia visual.**
+
+Não criar um dashboard cheio de cards sem propósito.
+
+---
+
+# 2. PRINCÍPIO VISUAL
+
+O usuário deve abrir o sistema e entender em poucos segundos:
+
+> "O que está acontecendo nas minhas vendas e o que preciso fazer agora?"
+
+A interface deve priorizar:
+
+1. ações;
+2. informações importantes;
+3. contexto;
+4. próximos passos.
+
+Evitar:
+
+* excesso de gráficos;
+* excesso de cores;
+* bordas em todos os elementos;
+* sombras exageradas;
+* gradientes decorativos;
+* animações desnecessárias;
+* interfaces visualmente poluídas;
+* tabelas gigantes sem hierarquia.
+
+---
+
+# 3. DESIGN SYSTEM
+
+Criar um Design System completo.
+
+Definir tokens para:
+
+### Cores
+
+Criar:
+
+```text
+Background
+Surface
+Surface Elevated
+Border
+Text Primary
+Text Secondary
+Text Muted
+Primary
+Primary Hover
+Success
+Warning
+Danger
+Info
+```
+
+A cor primária deve transmitir tecnologia e confiança.
+
+Utilizar uma paleta predominantemente neutra, com uma cor de destaque consistente.
+
+Não transformar cada módulo em uma cor diferente.
+
+---
+
+# 4. DARK MODE
+
+O sistema deve possuir:
+
+* Light Mode;
+* Dark Mode;
+* preferência do sistema.
+
+O Dark Mode não deve ser simplesmente "inverter cores".
+
+Criar hierarquia específica para dark mode.
+
+---
+
+# 5. TIPOGRAFIA
+
+Utilizar uma fonte moderna e extremamente legível.
+
+Preferência:
+
+```text
+Inter
+```
+
+ou outra fonte equivalente adequada para SaaS.
+
+Hierarquia:
+
+```text
+Display
+H1
+H2
+H3
+Body
+Small
+Caption
+Label
+```
+
+Evitar fontes decorativas.
+
+---
+
+# 6. LAYOUT
+
+Desktop:
+
+```text
+┌─────────────────────────────────────────────┐
+│ Topbar                                      │
+├──────────────┬──────────────────────────────┤
+│              │                              │
+│ Sidebar      │ Main Content                 │
+│              │                              │
+│              │                              │
+│              │                              │
+└──────────────┴──────────────────────────────┘
+```
+
+Sidebar:
+
+* compacta;
+* elegante;
+* ícones + labels;
+* possibilidade de recolher;
+* estado ativo extremamente claro.
+
+---
+
+# 7. SIDEBAR
+
+Estrutura:
+
+```text
+LOGO
+
+Visão Geral
+
+Vendas
+  Pedidos
+  Oportunidades
+  Vendas Perdidas
+
+CRM
+  Clientes
+  Leads
+  Pipeline
+
+WhatsApp
+  Inbox
+  Conversas
+  Campanhas
+
+Inteligência
+  Recomendações
+  Recompra
+  Risco
+  Análises
+
+Automação
+  Workflows
+  Execuções
+
+Produtos
+
+Relatórios
+
+────────────────
+
+Configurações
+
+Perfil
+```
+
+Não mostrar todos os itens simultaneamente quando isso prejudicar a navegação.
+
+Agrupar visualmente.
+
+---
+
+# 8. TOPBAR
+
+Criar:
+
+```text
+Busca global
+Notificações
+Ajuda
+Status das integrações
+Avatar
+```
+
+Busca global deve permitir:
+
+```text
+cliente
+pedido
+produto
+lead
+telefone
+empresa
+```
+
+Exemplo:
+
+```text
+⌘ K
+Buscar cliente, pedido, produto...
+```
+
+Criar Command Palette.
+
+---
+
+# 9. DASHBOARD PRINCIPAL
+
+A tela inicial NÃO deve ser um dashboard genérico.
+
+Ela deve ser:
+
+# Central Comercial
+
+Topo:
+
+```text
+Bom dia, Daniel
+
+Aqui está o que precisa da sua atenção hoje.
+```
+
+Cards principais:
+
+```text
+Vendas hoje
+Pedidos digitais
+Oportunidades
+Vendas recuperadas
+```
+
+Abaixo:
+
+```text
+┌──────────────────────┬──────────────────────┐
+│ O que precisa        │ Funil comercial      │
+│ de atenção           │                      │
+│                      │                      │
+│ Clientes em risco    │ Leads                │
+│ Negociações          │ Oportunidades        │
+│ Follow-ups           │ Pedidos              │
+└──────────────────────┴──────────────────────┘
+```
+
+---
+
+# 10. "O QUE PRECISA DE ATENÇÃO"
+
+Essa deve ser uma das áreas mais importantes do sistema.
+
+Mostrar itens acionáveis:
+
+```text
+Cliente em risco
+Cliente X
+Compra normalmente a cada 20 dias
+Está há 31 dias sem comprar
+
+[Contatar]
+```
+
+Outro:
+
+```text
+Negociação
+Empresa Y
+Pedido potencial: R$ 2.480
+
+[Ver conversa]
+```
+
+Outro:
+
+```text
+Venda perdida
+Cliente Z
+Produto: Desinfetante
+Motivo: preço
+
+[Recuperar]
+```
+
+Não mostrar apenas números.
+
+Mostrar contexto + ação.
+
+---
+
+# 11. CARDS
+
+Cards devem ser:
+
+* discretos;
+* limpos;
+* com boa tipografia;
+* pouco arredondados;
+* sombra muito sutil;
+* hierarquia clara.
+
+Não utilizar cards gigantes.
+
+Preferir:
+
+```text
+label
+valor
+variação
+contexto
+```
+
+Exemplo:
+
+```text
+Vendas digitais
+
+R$ 48.320
+
+↑ 18,4%
+
+vs. período anterior
+```
+
+---
+
+# 12. GRÁFICOS
+
+Usar gráficos somente quando realmente agregarem informação.
+
+Tipos:
+
+* linha;
+* barra;
+* área;
+* donut quando necessário;
+* funil;
+* heatmap;
+* ranking.
+
+Evitar gráficos 3D.
+
+Tooltips elegantes.
+
+Filtros:
+
+```text
+Hoje
+7 dias
+30 dias
+90 dias
+Personalizado
+```
+
+---
+
+# 13. CRM — CLIENTES
+
+Criar tela de clientes premium.
+
+Tabela moderna:
+
+```text
+Cliente
+Status
+Última compra
+Ticket médio
+Frequência
+Risco
+Último contato
+```
+
+Filtros:
+
+```text
+Status
+Cidade
+Segmento
+Última compra
+Ticket
+Risco
+```
+
+Busca instantânea.
+
+Tabela com:
+
+* ordenação;
+* paginação;
+* seleção múltipla;
+* ações em massa;
+* colunas configuráveis.
+
+---
+
+# 14. CUSTOMER 360
+
+Ao abrir um cliente:
+
+```text
+┌───────────────────────────────────────────┐
+│ Empresa XYZ                         VIP    │
+│ WhatsApp • Cidade • Segmento              │
+│                                           │
+│ R$ 2.480 ticket médio                     │
+│ Compra a cada 21 dias                     │
+│ Última compra há 23 dias                  │
+└───────────────────────────────────────────┘
+```
+
+Abas:
+
+```text
+Visão geral
+Conversas
+Pedidos
+Compras
+Produtos
+Atividades
+Campanhas
+Inteligência
+```
+
+---
+
+# 15. CUSTOMER INTELLIGENCE
+
+Criar uma área visual:
+
+```text
+INTELIGÊNCIA
+```
+
+Exibir:
+
+```text
+Probabilidade de recompra
+████████████████░░ 87%
+
+Risco de churn
+████░░░░░░░░░░░░░ 23%
+
+Valor do cliente
+ALTO
+```
+
+Mostrar explicação.
+
+Exemplo:
+
+```text
+Por que recomendamos contato?
+
+• Cliente compra normalmente a cada 21 dias
+• Última compra há 23 dias
+• Comprou detergente 4 vezes
+• Não compra desinfetante há 60 dias
+```
+
+A inteligência deve parecer útil, não uma "caixa preta de IA".
+
+---
+
+# 16. WHATSAPP INBOX
+
+Esta será uma das telas mais utilizadas.
+
+Inspirar-se em interfaces modernas de atendimento.
+
+Layout:
+
+```text
+┌──────────────┬──────────────────────┬─────────────────┐
+│ Conversas    │ Conversa             │ Cliente         │
+│              │                      │                 │
+│ Cliente A    │ mensagens            │ Customer 360    │
+│ Cliente B    │ mensagens            │                 │
+│ Cliente C    │ mensagens            │ pedido          │
+│              │                      │ recomendações   │
+└──────────────┴──────────────────────┴─────────────────┘
+```
+
+---
+
+# 17. CONVERSA WHATSAPP
+
+Criar experiência semelhante a mensageiro moderno.
+
+Mostrar:
+
+* mensagens;
+* horário;
+* status;
+* mídia;
+* pedidos;
+* produtos;
+* carrinho;
+* eventos da IA.
+
+Diferenciar claramente:
+
+```text
+IA
+HUMANO
+SISTEMA
+CLIENTE
+```
+
+Exemplo:
+
+```text
+✨ IA
+
+Encontrei os produtos que você costuma comprar.
+```
+
+---
+
+# 18. COPILOTO DA IA
+
+Na lateral da conversa:
+
+```text
+AI COPILOT
+
+Cliente demonstra intenção de compra
+
+Sugestão:
+
+"Ofereça o desinfetante 5L."
+
+Motivo:
+Cliente compra detergente,
+mas não compra desinfetante.
+
+[Inserir sugestão]
+```
+
+Outra sugestão:
+
+```text
+Resumo da conversa
+
+Cliente quer:
+• 10 detergentes
+• 5 desinfetantes
+
+Possível objeção:
+Preço
+```
+
+---
+
+# 19. CARRINHO
+
+Dentro do WhatsApp:
+
+```text
+CARRINHO
+
+Detergente 5L
+10 × R$ 18,90
+
+Desinfetante 5L
+5 × R$ 22,90
+
+────────────────
+
+Total
+R$ 303,50
+
+[Finalizar pedido]
+```
+
+---
+
+# 20. LEADS
+
+Criar Pipeline visual.
+
+```text
+NOVOS
+   ↓
+CONTATO
+   ↓
+INTERESSADO
+   ↓
+QUALIFICADO
+   ↓
+NEGOCIAÇÃO
+   ↓
+PRIMEIRO PEDIDO
+```
+
+Cards devem mostrar:
+
+```text
+Empresa
+Cidade
+Potencial
+Última interação
+Valor estimado
+```
+
+Drag & drop.
+
+---
+
+# 21. OPORTUNIDADES
+
+Criar pipeline comercial moderno.
+
+Mostrar:
+
+```text
+R$ 48.230
+12 oportunidades
+```
+
+Cada oportunidade:
+
+```text
+Cliente
+Valor
+Probabilidade
+Etapa
+Próxima ação
+Responsável
+```
+
+---
+
+# 22. VENDAS PERDIDAS
+
+Criar uma tela visual de recuperação.
+
+Filtros:
+
+```text
+Preço
+Sem estoque
+Cliente desistiu
+Sem resposta
+Pedido abandonado
+Outro
+```
+
+Cada oportunidade:
+
+```text
+Cliente:
+Empresa XYZ
+
+Produto:
+Desinfetante 5L
+
+Valor estimado:
+R$ 820
+
+Motivo:
+Preço
+
+Recuperável:
+ALTA
+
+[Iniciar recuperação]
+```
+
+---
+
+# 23. AUTOMAÇÕES
+
+Criar página:
+
+# Automações
+
+Cards de workflows:
+
+```text
+Cliente inativo
+ATIVO
+
+1.284 execuções
+97,8% sucesso
+
+Recompra
+ATIVO
+
+842 execuções
+98,9% sucesso
+
+Carrinho abandonado
+ATIVO
+
+321 execuções
+96,4% sucesso
+```
+
+Botão:
+
+```text
++ Nova automação
+```
+
+---
+
+# 24. WORKFLOW
+
+Não recriar o editor do n8n.
+
+A interface principal deve mostrar o workflow de maneira resumida.
+
+Exemplo:
+
+```text
+Cliente inativo
+
+Cliente em risco
+      ↓
+Histórico
+      ↓
+Produtos
+      ↓
+IA
+      ↓
+WhatsApp
+      ↓
+Resposta
+      ↓
+Pedido / Humano
+```
+
+Botão:
+
+```text
+Abrir no n8n
+```
+
+---
+
+# 25. EXECUÇÕES
+
+Criar tela de monitoramento:
+
+```text
+Automação
+Status
+Cliente
+Início
+Duração
+Resultado
+```
+
+Exemplo:
+
+```text
+Cliente inativo
+✓ Sucesso
+Empresa XYZ
+10:32
+2.4s
+Mensagem enviada
+```
+
+Falha:
+
+```text
+Cliente inativo
+✕ Falhou
+
+Erro:
+WhatsApp timeout
+
+[Reprocessar]
+```
+
+---
+
+# 26. PRODUTOS
+
+Criar catálogo moderno.
+
+Cards ou tabela híbrida.
+
+Mostrar:
+
+```text
+Imagem
+Produto
+Categoria
+Preço
+Estoque
+Vendas
+Status
+```
+
+Página do produto:
+
+```text
+Produto
+
+Detergente 5L
+
+Estoque
+1.284
+
+Vendas 30 dias
+428
+
+Clientes
+213
+
+Preço médio
+R$ X
+```
+
+---
+
+# 27. INTELIGÊNCIA COMERCIAL
+
+Criar uma área chamada:
+
+# Inteligência
+
+Subseções:
+
+```text
+Recompra
+Clientes em risco
+Oportunidades
+Cross-sell
+Queda de consumo
+Vendas perdidas
+Previsão
+```
+
+---
+
+# 28. RECOMPRA
+
+Visual:
+
+```text
+CLIENTES PRONTOS PARA COMPRAR
+
+87 clientes
+
+Alta probabilidade
+```
+
+Lista:
+
+```text
+Empresa A
+Probabilidade 94%
+Normalmente compra a cada 18 dias
+Hoje: dia 19
+
+[Contatar]
+```
+
+---
+
+# 29. MAPA REGIONAL
+
+Criar mapa comercial.
+
+Mostrar:
+
+* clientes;
+* leads;
+* oportunidades;
+* vendas;
+* potencial.
+
+Filtros:
+
+```text
+Clientes
+Leads
+Potencial
+Vendas
+Risco
+```
+
+A visualização deve ser limpa.
+
+---
+
+# 30. CAMPANHAS
+
+Criar campanha em etapas.
+
+## Etapa 1
+
+Público:
+
+```text
+Clientes sem comprar há 30 dias
+```
+
+## Etapa 2
+
+Mensagem.
+
+## Etapa 3
+
+Prévia.
+
+## Etapa 4
+
+Agendamento.
+
+## Etapa 5
+
+Resultados.
+
+Mostrar:
+
+```text
+Enviadas
+Entregues
+Respondidas
+Conversões
+Pedidos
+Receita
+```
+
+---
+
+# 31. ONBOARDING DO SAAS
+
+O onboarding é extremamente importante.
+
+Primeiro acesso:
+
+```text
+Bem-vindo ao sistema.
+
+Vamos configurar sua operação comercial.
+```
+
+Stepper:
+
+```text
+1. Empresa
+2. ERP
+3. WhatsApp
+4. Produtos
+5. Equipe
+6. Automação
+7. Concluído
+```
+
+Mostrar progresso.
+
+Não apresentar uma tela enorme de configurações.
+
+---
+
+# 32. MULTI-TENANT
+
+O usuário deve perceber que está dentro de uma organização.
+
+Topbar:
+
+```text
+[Logo] Empresa XYZ ▾
+```
+
+Dropdown:
+
+```text
+Empresa XYZ
+Plano Professional
+
+Configurações
+Equipe
+Faturamento
+Sair
+```
+
+Nunca misturar dados entre tenants visualmente.
+
+---
+
+# 33. BILLING / PLANO
+
+Criar área:
+
+# Seu plano
+
+Mostrar:
+
+```text
+Professional
+
+R$ XXX/mês
+
+Clientes
+1.284 / 5.000
+
+Mensagens
+8.420 / 20.000
+
+Usuários
+7 / 10
+
+Automações
+18 / 50
+```
+
+Progress bars discretas.
+
+---
+
+# 34. NOTIFICAÇÕES
+
+Criar central de notificações.
+
+Tipos:
+
+```text
+Nova oportunidade
+Cliente em risco
+Pedido criado
+Venda recuperada
+Workflow falhou
+Lead novo
+Integração indisponível
+```
+
+Prioridade visual.
+
+---
+
+# 35. EMPTY STATES
+
+Nunca mostrar tela vazia sem explicação.
+
+Exemplo:
+
+```text
+Ainda não existem oportunidades.
+
+Quando seus clientes demonstrarem intenção de compra,
+elas aparecerão aqui.
+
+[Ver clientes]
+```
+
+---
+
+# 36. LOADING STATES
+
+Utilizar skeletons.
+
+Nunca deixar telas "pulando" durante carregamento.
+
+Criar:
+
+* skeleton table;
+* skeleton cards;
+* skeleton conversation;
+* skeleton customer profile.
+
+---
+
+# 37. ERROR STATES
+
+Erro deve ser compreensível.
+
+Não mostrar:
+
+```text
+500 Internal Server Error
+```
+
+Para usuário comum.
+
+Mostrar:
+
+```text
+Não conseguimos carregar os dados.
+
+Tente novamente.
+
+[Recarregar]
+```
+
+Manter detalhes técnicos apenas em logs/admin.
+
+---
+
+# 38. TOASTS
+
+Criar sistema consistente.
+
+Exemplo:
+
+```text
+✓ Pedido criado
+Pedido #10283 enviado ao ERP.
+```
+
+Erro:
+
+```text
+Não foi possível criar o pedido.
+[Ver detalhes]
+```
+
+---
+
+# 39. MODAIS
+
+Evitar excesso de modal.
+
+Preferir:
+
+* drawer;
+* página;
+* side panel.
+
+Usar modal apenas para ações que realmente precisam de confirmação.
+
+---
+
+# 40. DRAWERS
+
+Utilizar drawers para:
+
+* detalhes do cliente;
+* detalhes do pedido;
+* execução;
+* lead;
+* oportunidade.
+
+Isso mantém o usuário no contexto.
+
+---
+
+# 41. MICROINTERAÇÕES
+
+Adicionar animações extremamente discretas:
+
+* hover;
+* transição de páginas;
+* abertura de drawer;
+* atualização de status;
+* sucesso de ação.
+
+Não usar animações exageradas.
+
+A interface deve parecer rápida.
+
+---
+
+# 42. RESPONSIVIDADE
+
+Desktop-first, mas responsivo.
+
+Tablet:
+
+* sidebar compacta;
+* tabelas adaptadas;
+* cards reorganizados.
+
+Mobile:
+
+* bottom navigation quando necessário;
+* inbox otimizado;
+* CRM simplificado;
+* ações principais acessíveis.
+
+---
+
+# 43. ACESSIBILIDADE
+
+Implementar:
+
+* contraste adequado;
+* foco de teclado;
+* aria labels;
+* navegação por teclado;
+* tamanhos de clique adequados;
+* estados de foco;
+* sem depender somente de cor.
+
+---
+
+# 44. COMPONENTES REUTILIZÁVEIS
+
+Criar biblioteca interna:
+
+```text
+Button
+Input
+Select
+Combobox
+DatePicker
+Badge
+Avatar
+Card
+DataTable
+Drawer
+Modal
+Tabs
+Dropdown
+Tooltip
+Toast
+CommandPalette
+Chart
+Timeline
+Kanban
+EmptyState
+Skeleton
+StatusIndicator
+MetricCard
+```
+
+Não duplicar componentes.
+
+---
+
+# 45. DESIGN TOKENS
+
+Centralizar:
+
+```text
+spacing
+radius
+typography
+colors
+shadows
+transitions
+breakpoints
+```
+
+Nunca espalhar valores arbitrários pelo código.
+
+---
+
+# 46. ÍCONES
+
+Utilizar biblioteca consistente.
+
+Preferência:
+
+```text
+Lucide
+```
+
+Não misturar várias bibliotecas de ícones.
+
+---
+
+# 47. TABELAS
+
+Tabelas são importantes para o SaaS B2B.
+
+Criar:
+
+* sticky header;
+* ordenação;
+* filtros;
+* busca;
+* paginação;
+* seleção;
+* ações;
+* colunas configuráveis.
+
+Não deixar a tabela visualmente pesada.
+
+---
+
+# 48. DENSIDADE
+
+O sistema é B2B e precisa suportar grande quantidade de informação.
+
+Criar três níveis:
+
+```text
+Compact
+Default
+Comfortable
+```
+
+Permitir ao usuário escolher quando fizer sentido.
+
+---
+
+# 49. DESIGN DA IA
+
+A IA deve ter identidade própria, mas discreta.
+
+Nunca criar um robô gigante.
+
+Utilizar:
+
+```text
+AI
+```
+
+ou um pequeno ícone.
+
+Exemplo:
+
+```text
+✨ Insight da IA
+```
+
+A IA deve aparecer como uma ferramenta do sistema, não como protagonista visual.
+
+---
+
+# 50. STATUS VISUAIS
+
+Criar sistema consistente:
+
+```text
+Success → operação concluída
+Warning → atenção
+Danger → problema
+Info → informação
+Neutral → estado normal
+```
+
+Não utilizar vermelho/verde em excesso.
+
+---
+
+# 51. VELOCIDADE PERCEBIDA
+
+Priorizar:
+
+* optimistic updates quando seguros;
+* skeleton;
+* cache;
+* paginação;
+* debounce;
+* carregamento incremental;
+* prefetch.
+
+A interface deve parecer instantânea.
+
+---
+
+# 52. BUSCA GLOBAL
+
+Command Palette:
+
+```text
+⌘ K
+```
+
+Pesquisar:
+
+```text
+Clientes
+Pedidos
+Produtos
+Leads
+Conversas
+Oportunidades
+```
+
+Resultado agrupado:
+
+```text
+CLIENTES
+Empresa XYZ
+
+PEDIDOS
+#10283
+
+PRODUTOS
+Detergente 5L
+```
+
+---
+
+# 53. ATALHOS
+
+Criar:
+
+```text
+⌘ K → busca
+N → novo
+G C → clientes
+G L → leads
+G W → WhatsApp
+G A → automações
+```
+
+Documentar os atalhos.
+
+---
+
+# 54. PRINCÍPIO DE UX MAIS IMPORTANTE
+
+Cada página deve responder:
+
+### O que estou vendo?
+
+### Por que isso importa?
+
+### O que posso fazer?
+
+### Qual é o próximo passo?
+
+Não criar telas puramente informativas quando uma ação puder ser apresentada.
+
+---
+
+# 55. NÃO FAZER
+
+Não criar:
+
+* dashboard estilo ERP antigo;
+* excesso de cards;
+* sidebar gigante;
+* gradientes exagerados;
+* neon;
+* glassmorphism excessivo;
+* sombras fortes;
+* bordas em tudo;
+* dezenas de cores;
+* gráficos inúteis;
+* telas cheias de informações sem hierarquia;
+* botões gigantes;
+* textos longos desnecessários;
+* UI genérica de template.
+
+---
+
+# 56. PERSONALIDADE VISUAL
+
+A marca deve transmitir:
+
+**"Tecnologia que entende vendas."**
+
+Não deve parecer:
+
+* sistema financeiro;
+* ERP legado;
+* software de call center;
+* chatbot genérico.
+
+Deve parecer:
+
+**plataforma moderna de inteligência comercial.**
+
+---
+
+# 57. LANDING PAGE DO SAAS
+
+Além do painel interno, criar uma landing page comercial.
+
+Estrutura:
+
+```text
+Hero
+Problema
+Como funciona
+Automação
+WhatsApp
+IA
+CRM
+Integrações
+Inteligência
+Resultados
+Planos
+FAQ
+CTA
+Footer
+```
+
+Hero:
+
+```text
+Sua equipe comercial,
+agora trabalha 24 horas por dia.
+
+A plataforma que encontra oportunidades,
+conversa com seus clientes e transforma
+intenção em vendas.
+
+[Começar agora]
+[Ver como funciona]
+```
+
+Criar mockups reais do produto.
+
+Não utilizar imagens genéricas de banco.
+
+---
+
+# 58. LOGIN
+
+Login extremamente limpo.
+
+```text
+Logo
+
+Bem-vindo de volta
+
+E-mail
+Senha
+
+[Entrar]
+
+Esqueci minha senha
+```
+
+Se houver SSO futuramente, deixar arquitetura preparada.
+
+---
+
+# 59. PRIMEIRA IMPRESSÃO
+
+Os primeiros 30 segundos do usuário devem mostrar:
+
+```text
+Clientes
+Vendas
+Oportunidades
+WhatsApp
+Automação
+```
+
+Não começar com configurações.
+
+---
+
+# 60. TECNOLOGIA DE FRONTEND
+
+Implementar com:
+
+* Next.js;
+* React;
+* TypeScript;
+* Tailwind CSS;
+* componentes reutilizáveis;
+* biblioteca de componentes interna;
+* Lucide Icons;
+* gráficos modernos;
+* animações discretas.
+
+Utilizar uma abordagem consistente de tokens e componentes.
+
+---
+
+# 61. QUALIDADE VISUAL
+
+Antes de considerar uma tela pronta, verificar:
+
+* alinhamento;
+* espaçamento;
+* hierarquia;
+* tipografia;
+* contraste;
+* consistência;
+* responsividade;
+* estados vazios;
+* loading;
+* erro;
+* hover;
+* foco;
+* acessibilidade.
+
+---
+
+# 62. IMPLEMENTAÇÃO
+
+Não criar somente o design estático.
+
+Implementar o frontend funcional conectado às APIs.
+
+Fluxo:
+
+```text
+Design
+ ↓
+Componentes
+ ↓
+Pages
+ ↓
+API
+ ↓
+Dados reais
+```
+
+Evitar mocks permanentes.
+
+---
+
+# 63. PRIORIDADE
+
+Construir primeiro as telas que representam o coração do produto:
+
+1. Login
+2. Onboarding
+3. Central Comercial
+4. Clientes
+5. Customer 360
+6. WhatsApp Inbox
+7. Leads
+8. Oportunidades
+9. Pedidos
+10. Automações
+11. Execuções
+12. Inteligência
+13. Produtos
+14. Campanhas
+15. Configurações
+16. Billing
+17. Landing Page
+
+---
+
+# 64. RESULTADO ESPERADO
+
+Ao terminar, o produto deve parecer um SaaS pronto para ser vendido para centenas ou milhares de empresas.
+
+O usuário deve olhar para a interface e pensar:
+
+> "Isso é uma plataforma profissional de vendas."
+
+Não:
+
+> "Isso é um sistema interno."
+
+A interface precisa ser suficientemente elegante para uma demonstração comercial e suficientemente eficiente para uso diário intenso.
+
+---
+
+# 65. REGRA FINAL PARA O CLAUDE
+
+Não implemente uma interface bonita sacrificando usabilidade.
+
+Não implemente usabilidade sacrificando estética.
+
+O objetivo é:
+
+**PREMIUM + SIMPLES + RÁPIDO + DENSO + INTELIGENTE.**
+
+Cada decisão visual deve melhorar a capacidade do usuário de vender mais, atender melhor ou tomar decisões comerciais.
+
+O produto deve parecer uma plataforma moderna de SaaS B2B criada em 2026.
+
+para o n8n implemento o https://github.com/n8n-io/n8n no projeto

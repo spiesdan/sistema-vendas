@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central Comercial — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ DESIGN TOKENS ============ */
+  :root {
+    --bg: #F6F6F8;
+    --surface: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --border: #E5E5EA;
+    --border-strong: #D7D8DE;
+    --text-primary: #15161B;
+    --text-secondary: #5C5E6B;
+    --text-muted: #9A9CA8;
+    --primary: #1450E0;
+    --primary-hover: #0F3DB4;
+    --primary-soft: #EAF0FE;
+    --success: #157F3C;
+    --success-soft: #E8F6ED;
+    --warning: #B5690A;
+    --warning-soft: #FDF1E2;
+    --danger: #C22A1E;
+    --danger-soft: #FBEAE8;
+    --info: #1D6FA5;
+    --info-soft: #E8F3FA;
+    --shadow-xs: 0 1px 2px rgba(21,22,27,.04);
+    --shadow-sm: 0 1px 2px rgba(21,22,27,.05), 0 4px 10px -6px rgba(21,22,27,.06);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --sidebar-w: 236px;
+    --sidebar-w-collapsed: 68px;
+    --topbar-h: 56px;
+    --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-num: 'Inter Tight', 'Inter', sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #0C0D11;
+    --surface: #16171D;
+    --surface-elevated: #1B1D24;
+    --border: #262832;
+    --border-strong: #33353F;
+    --text-primary: #F2F3F5;
+    --text-secondary: #A7A9B5;
+    --text-muted: #6E7080;
+    --primary: #5C8AFA;
+    --primary-hover: #7BA0FB;
+    --primary-soft: #182541;
+    --success: #3FBE72;
+    --success-soft: #10281B;
+    --warning: #E2953C;
+    --warning-soft: #33260F;
+    --danger: #E5645A;
+    --danger-soft: #331714;
+    --info: #4FA8DB;
+    --info-soft: #10263334;
+    --info-soft: #10283A;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.35), 0 6px 16px -8px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-ui);
+    background: var(--bg);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    line-height: 1.45;
+    transition: background .18s ease, color .18s ease;
+  }
+  ::selection { background: var(--primary-soft); color: var(--primary); }
+  button { font-family: inherit; }
+  a { color: inherit; text-decoration: none; }
+
+  .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+  /* ============ SHELL ============ */
+  .shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-rows: var(--topbar-h) 1fr;
+    grid-template-areas:
+      "topbar topbar"
+      "sidebar main";
+    min-height: 100vh;
+    transition: grid-template-columns .18s ease;
+  }
+  .shell.collapsed { grid-template-columns: var(--sidebar-w-collapsed) 1fr; }
+
+  /* ============ TOPBAR ============ */
+  .topbar {
+    grid-area: topbar;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 30;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 14.5px; letter-spacing: -.01em;
+    white-space: nowrap;
+    width: calc(var(--sidebar-w) - 16px);
+    flex-shrink: 0;
+    transition: width .18s ease;
+  }
+  .shell.collapsed .brand { width: calc(var(--sidebar-w-collapsed) - 16px); }
+  .brand-mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand-name-group { display: flex; flex-direction: column; overflow: hidden; }
+  .brand-org { color: var(--text-muted); font-weight: 500; font-size: 11.5px; margin-top: -1px; display:flex; align-items:center; gap:3px; }
+  .shell.collapsed .brand-name-group { display: none; }
+
+  .topbar-search {
+    flex: 1; max-width: 440px;
+    display: flex; align-items: center; gap: 8px;
+    height: 34px; padding: 0 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .topbar-search:hover { border-color: var(--border-strong); background: var(--surface); }
+  .topbar-search span.hint { flex: 1; font-size: 13px; }
+  .kbd {
+    font-family: var(--font-num);
+    font-size: 11px; font-weight: 600;
+    padding: 2px 5px; border-radius: 4px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  .topbar-right { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .icon-btn {
+    width: 32px; height: 32px; border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: var(--text-secondary);
+    cursor: pointer; position: relative;
+    transition: background .12s ease, color .12s ease;
+  }
+  .icon-btn:hover { background: var(--bg); color: var(--text-primary); }
+  .dot-badge {
+    position: absolute; top: 6px; right: 6px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--danger); border: 1.5px solid var(--surface);
+  }
+  .integration-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px 5px 8px; border-radius: 999px;
+    border: 1px solid var(--border); font-size: 12px; color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary), #6E3FF0);
+    color: #fff; font-weight: 600; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar {
+    grid-area: sidebar;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 12px 10px 12px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    position: sticky; top: var(--topbar-h);
+    height: calc(100vh - var(--topbar-h));
+  }
+  .nav-group { margin-bottom: 4px; }
+  .nav-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .04em;
+    color: var(--text-muted); padding: 12px 10px 4px;
+    text-transform: none;
+  }
+  .shell.collapsed .nav-label { display: none; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: var(--radius-sm);
+    color: var(--text-secondary); font-size: 13.3px; font-weight: 500;
+    cursor: pointer; white-space: nowrap; margin-bottom: 1px;
+    border: 1px solid transparent;
+  }
+  .nav-item svg { flex-shrink: 0; opacity: .85; }
+  .nav-item:hover { background: var(--bg); color: var(--text-primary); }
+  .nav-item.active {
+    background: var(--primary-soft); color: var(--primary); font-weight: 600;
+  }
+  .nav-item.active svg { opacity: 1; }
+  .nav-item .label { overflow: hidden; text-overflow: ellipsis; }
+  .shell.collapsed .nav-item .label { display: none; }
+  .shell.collapsed .nav-item { justify-content: center; }
+  .nav-sub { padding-left: 30px; }
+  .shell.collapsed .nav-sub { display: none; }
+  .nav-divider { height: 1px; background: var(--border); margin: 10px 6px; }
+  .sidebar-footer { margin-top: auto; padding-top: 8px; }
+  .collapse-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 7px 10px; border-radius: var(--radius-sm);
+    background: transparent; border: none; color: var(--text-muted);
+    cursor: pointer; font-size: 12.5px; font-weight: 500;
+  }
+  .collapse-btn:hover { background: var(--bg); color: var(--text-secondary); }
+
+  /* ============ MAIN ============ */
+  .main { grid-area: main; padding: 28px 32px 60px; max-width: 1240px; }
+  .page-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    margin-bottom: 24px; gap: 16px; flex-wrap: wrap;
+  }
+  .page-head h1 { font-size: 22px; font-weight: 700; letter-spacing: -.015em; margin: 0 0 4px; }
+  .page-head p { margin: 0; color: var(--text-secondary); font-size: 13.5px; }
+
+  .segmented {
+    display: flex; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 2px; gap: 2px;
+  }
+  .segmented button {
+    border: none; background: transparent; padding: 6px 12px;
+    border-radius: 5px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .segmented button.active { background: var(--bg); color: var(--text-primary); font-weight: 600; }
+
+  /* metric cards */
+  .metrics-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 12px;
+  }
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 16px 18px;
+    box-shadow: var(--shadow-xs);
+  }
+  .metric-label { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; margin-bottom: 10px; }
+  .metric-value-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+  .metric-value { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+  .metric-spark { flex-shrink: 0; opacity: .9; }
+  .metric-delta { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; }
+  .delta-up { color: var(--success); font-weight: 600; display:flex; align-items:center; gap:2px; }
+  .delta-down { color: var(--danger); font-weight: 600; display:flex; align-items:center; gap:2px; }
+  .delta-context { color: var(--text-muted); }
+
+  /* two column section */
+  .split-row { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 12px; align-items: start; }
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-md); box-shadow: var(--shadow-xs);
+    overflow: hidden;
+  }
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 18px 12px; border-bottom: 1px solid var(--border);
+  }
+  .panel-head h2 { font-size: 14.5px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  .panel-head .count-tag {
+    font-size: 11.5px; font-weight: 600; color: var(--text-secondary);
+    background: var(--bg); padding: 2px 7px; border-radius: 999px;
+  }
+  .panel-link { font-size: 12.5px; color: var(--primary); font-weight: 600; cursor: pointer; }
+
+  /* attention list */
+  .attn-list { display: flex; flex-direction: column; }
+  .attn-item {
+    display: flex; gap: 12px; padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .attn-item:last-child { border-bottom: none; }
+  .attn-icon {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .attn-icon.warning { background: var(--warning-soft); color: var(--warning); }
+  .attn-icon.info { background: var(--info-soft); color: var(--info); }
+  .attn-icon.danger { background: var(--danger-soft); color: var(--danger); }
+  .attn-body { flex: 1; min-width: 0; }
+  .attn-tag { font-size: 11px; font-weight: 700; letter-spacing: .02em; margin-bottom: 3px; }
+  .attn-tag.warning { color: var(--warning); }
+  .attn-tag.info { color: var(--info); }
+  .attn-tag.danger { color: var(--danger); }
+  .attn-title { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .attn-desc { font-size: 12.8px; color: var(--text-secondary); line-height: 1.5; }
+  .attn-action {
+    align-self: center; flex-shrink: 0;
+    font-size: 12.5px; font-weight: 600; color: var(--primary);
+    background: var(--primary-soft); padding: 7px 12px; border-radius: var(--radius-sm);
+    border: none; cursor: pointer; white-space: nowrap;
+  }
+  .attn-action:hover { background: var(--primary); color: #fff; }
+
+  /* funnel */
+  .funnel-wrap { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .funnel-stage { display: flex; flex-direction: column; gap: 5px; }
+  .funnel-top-row { display: flex; justify-content: space-between; align-items: baseline; }
+  .funnel-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .funnel-value { font-size: 15px; font-weight: 700; font-family: var(--font-num); }
+  .funnel-bar-track { height: 8px; background: var(--bg); border-radius: 5px; overflow: hidden; }
+  .funnel-bar-fill { height: 100%; border-radius: 5px; background: var(--primary); }
+  .funnel-conv { font-size: 11.5px; color: var(--text-muted); text-align: right; margin-top: -2px; }
+
+  .funnel-total {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px; border-top: 1px solid var(--border); background: var(--bg);
+  }
+  .funnel-total .label { font-size: 12.5px; color: var(--text-secondary); font-weight: 500; }
+  .funnel-total .value { font-size: 15px; font-weight: 700; }
+
+  /* command palette */
+  .cmdk-backdrop {
+    position: fixed; inset: 0; background: rgba(10,11,14,.45);
+    display: none; align-items: flex-start; justify-content: center;
+    padding-top: 12vh; z-index: 100;
+  }
+  .cmdk-backdrop.open { display: flex; }
+  .cmdk {
+    width: 560px; max-width: 92vw; background: var(--surface);
+    border-radius: var(--radius-lg); border: 1px solid var(--border);
+    box-shadow: 0 20px 60px -12px rgba(0,0,0,.35);
+    overflow: hidden;
+  }
+  .cmdk-input-row {
+    display: flex; align-items: center; gap: 10px; padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cmdk-input-row input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-size: 14.5px; color: var(--text-primary); font-family: var(--font-ui);
+  }
+  .cmdk-input-row input::placeholder { color: var(--text-muted); }
+  .cmdk-results { max-height: 360px; overflow-y: auto; padding: 8px; }
+  .cmdk-group-label { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; color: var(--text-muted); padding: 8px 10px 4px; }
+  .cmdk-row {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 13.3px; color: var(--text-primary);
+  }
+  .cmdk-row:hover { background: var(--bg); }
+  .cmdk-row .muted { color: var(--text-muted); font-size: 12px; margin-left: auto; }
+
+  @media (max-width: 980px) {
+    .metrics-row { grid-template-columns: repeat(2, 1fr); }
+    .split-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+          <path d="M3 15L8 9L11.5 12.5L17 5" stroke="white" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12.5 5H17V9.5" stroke="white" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-name-group">
+        <span>Comercial<span style="color:var(--primary)">.io</span></span>
+        <span class="brand-org">Empresa XYZ <svg width="10" height="10" viewBox="0 0 20 20" fill="none"><path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      </div>
+    </div>
+
+    <div class="topbar-search" id="openCmdk">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M17 17l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span class="hint">Buscar cliente, pedido, produto...</span>
+      <span class="kbd">⌘K</span>
+    </div>
+
+    <div class="topbar-right">
+      <div class="integration-pill"><span class="pulse-dot"></span>Integrações OK</div>
+      <button class="icon-btn" id="themeToggle" title="Alternar tema">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M10 2v2M10 16v2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M2 10h2M16 10h2M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="10" cy="10" r="3.4" stroke="currentColor" stroke-width="1.7"/></svg>
+      </button>
+      <button class="icon-btn" title="Ajuda">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.3" stroke="currentColor" stroke-width="1.6"/><path d="M7.8 7.6a2.2 2.2 0 1 1 3 2c-.7.5-1.1.9-1.1 1.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="13.9" r=".9" fill="currentColor"/></svg>
+      </button>
+      <button class="icon-btn" title="Notificações">
+        <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><path d="M5 8a5 5 0 0 1 10 0c0 3.2 1 4.4 1 4.4H4S5 11.2 5 8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.2 15.2a1.8 1.8 0 0 0 3.4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="dot-badge"></span>
+      </button>
+      <div class="avatar">DR</div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="nav-group">
+      <div class="nav-item active" data-icon="grid">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" rx="1.3" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="3" width="6" height="6" rx="1.3" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="11" width="6" height="6" rx="1.3" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="11" width="6" height="6" rx="1.3" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="label">Visão geral</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Vendas</div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 4h2l1.2 8.4a1.6 1.6 0 0 0 1.6 1.4h6.6a1.6 1.6 0 0 0 1.6-1.3L17 7H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="8" cy="17" r="1.1" fill="currentColor"/><circle cx="14.5" cy="17" r="1.1" fill="currentColor"/></svg>
+        <span class="label">Pedidos</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r="3.6" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="10" r=".9" fill="currentColor"/></svg>
+        <span class="label">Oportunidades</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 15l4.5-6L11 12l6-8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 4H17v3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Vendas perdidas</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">CRM</div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 17c.6-3.4 3.1-5.4 6.5-5.4s5.9 2 6.5 5.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="label">Clientes</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 3l2 4.2 4.6.7-3.3 3.2.8 4.6-4.1-2.2-4.1 2.2.8-4.6-3.3-3.2 4.6-.7L10 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <span class="label">Leads</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 5h14M3 10h14M3 15h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="label">Pipeline</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">WhatsApp</div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M4 16.5L5 13a6.5 6.5 0 1 1 2.6 2.6L4 16.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span class="label">Inbox</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="4.5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M5 7l5 3.5L15 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Conversas</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 9l13-5.5-4 13-3-5.5L3 9Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span class="label">Campanhas</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Inteligência</div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2.5l1.1 3.3 3.4.3-2.6 2.3.8 3.4-2.7-1.9-2.7 1.9.8-3.4-2.6-2.3 3.4-.3L10 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 16l1-1M15 16l-1-1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        <span class="label">Recomendações</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 1 1 2 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 14v-3.5h3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Recompra</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2.5L2.5 16h15L10 2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 8v3.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="13.6" r=".85" fill="currentColor"/></svg>
+        <span class="label">Risco</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 17V9M9 17V4M15 17v-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="label">Análises</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Automação</div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="5" cy="5" r="2" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="15" r="2" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="10" r="2" stroke="currentColor" stroke-width="1.6"/><path d="M6.6 5.9L13.3 9M6.6 14.1L13.3 11" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span class="label">Workflows</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.2" stroke="currentColor" stroke-width="1.6"/><path d="M8.3 7l4.4 3-4.4 3V7Z" fill="currentColor"/></svg>
+        <span class="label">Execuções</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="1.6" stroke="currentColor" stroke-width="1.6"/><path d="M3 8h14" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="label">Produtos</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="4" y="3" width="12" height="14" rx="1.6" stroke="currentColor" stroke-width="1.6"/><path d="M7 7h6M7 10h6M7 13h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="label">Relatórios</span>
+      </div>
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-group">
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.3" stroke="currentColor" stroke-width="1.6"/><path d="M10 3v2M10 15v2M17 10h-2M5 10H3M15 5l-1.4 1.4M6.4 13.6L5 15M15 15l-1.4-1.4M6.4 6.4L5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="label">Configurações</span>
+      </div>
+      <div class="nav-item">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="7" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 17c.6-3.4 3.1-5.4 6.5-5.4s5.9 2 6.5 5.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="label">Perfil</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="collapse-btn" id="collapseBtn">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="3.5" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 3.5v13" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="label">Recolher menu</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-head">
+      <div>
+        <h1>Bom dia, Daniel</h1>
+        <p>Aqui está o que precisa da sua atenção hoje.</p>
+      </div>
+      <div class="segmented">
+        <button>Hoje</button>
+        <button class="active">7 dias</button>
+        <button>30 dias</button>
+        <button>90 dias</button>
+      </div>
+    </div>
+
+    <!-- METRIC CARDS -->
+    <section class="metrics-row">
+      <div class="metric-card">
+        <div class="metric-label">Vendas hoje</div>
+        <div class="metric-value-row">
+          <div class="metric-value num">R$ 48.320</div>
+          <svg class="metric-spark" width="64" height="26" viewBox="0 0 64 26"><polyline points="0,20 10,17 20,19 30,12 40,14 50,7 64,4" fill="none" stroke="var(--success)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="metric-delta"><span class="delta-up">↑ 18,4%</span><span class="delta-context">vs. período anterior</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Pedidos digitais</div>
+        <div class="metric-value-row">
+          <div class="metric-value num">312</div>
+          <svg class="metric-spark" width="64" height="26" viewBox="0 0 64 26"><polyline points="0,10 10,14 20,9 30,15 40,11 50,17 64,13" fill="none" stroke="var(--text-muted)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="metric-delta"><span class="delta-up">↑ 6,1%</span><span class="delta-context">vs. período anterior</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Oportunidades</div>
+        <div class="metric-value-row">
+          <div class="metric-value num">96</div>
+          <svg class="metric-spark" width="64" height="26" viewBox="0 0 64 26"><polyline points="0,6 10,9 20,8 30,13 40,12 50,18 64,20" fill="none" stroke="var(--danger)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="metric-delta"><span class="delta-down">↓ 3,2%</span><span class="delta-context">vs. período anterior</span></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Vendas recuperadas</div>
+        <div class="metric-value-row">
+          <div class="metric-value num">R$ 9.140</div>
+          <svg class="metric-spark" width="64" height="26" viewBox="0 0 64 26"><polyline points="0,22 10,18 20,19 30,10 40,11 50,5 64,3" fill="none" stroke="var(--success)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="metric-delta"><span class="delta-up">↑ 24,0%</span><span class="delta-context">vs. período anterior</span></div>
+      </div>
+    </section>
+
+    <!-- SPLIT -->
+    <section class="split-row">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>O que precisa de atenção</h2>
+          <span class="count-tag">6 itens</span>
+        </div>
+        <div class="attn-list">
+          <div class="attn-item">
+            <div class="attn-icon warning">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2.5L2.5 16h15L10 2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 8v3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="10" cy="13.6" r=".9" fill="currentColor"/></svg>
+            </div>
+            <div class="attn-body">
+              <div class="attn-tag warning">CLIENTE EM RISCO</div>
+              <div class="attn-title">Empresa XYZ</div>
+              <div class="attn-desc">Compra normalmente a cada 20 dias. Está há 31 dias sem comprar.</div>
+            </div>
+            <button class="attn-action">Contatar</button>
+          </div>
+          <div class="attn-item">
+            <div class="attn-icon info">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="4.5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M5 7l5 3.5L15 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="attn-body">
+              <div class="attn-tag info">NEGOCIAÇÃO</div>
+              <div class="attn-title">Empresa Y</div>
+              <div class="attn-desc">Pedido potencial: <span class="num" style="font-weight:600;color:var(--text-primary)">R$ 2.480</span></div>
+            </div>
+            <button class="attn-action">Ver conversa</button>
+          </div>
+          <div class="attn-item">
+            <div class="attn-icon danger">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 15l4.5-6L11 12l6-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 4H17v3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="attn-body">
+              <div class="attn-tag danger">VENDA PERDIDA</div>
+              <div class="attn-title">Cliente Z — Desinfetante 5L</div>
+              <div class="attn-desc">Motivo: preço</div>
+            </div>
+            <button class="attn-action">Recuperar</button>
+          </div>
+          <div class="attn-item">
+            <div class="attn-icon warning">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M10 2.5L2.5 16h15L10 2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 8v3.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="10" cy="13.6" r=".9" fill="currentColor"/></svg>
+            </div>
+            <div class="attn-body">
+              <div class="attn-tag warning">CLIENTE EM RISCO</div>
+              <div class="attn-title">Distribuidora Nova Era</div>
+              <div class="attn-desc">Comprou detergente 4 vezes, mas não compra desinfetante há 60 dias.</div>
+            </div>
+            <button class="attn-action">Contatar</button>
+          </div>
+          <div class="attn-item">
+            <div class="attn-icon info">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="3" y="4.5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M5 7l5 3.5L15 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="attn-body">
+              <div class="attn-tag info">FOLLOW-UP</div>
+              <div class="attn-title">Mercado Bom Preço</div>
+              <div class="attn-desc">Última resposta há 2 dias. Aguardando confirmação do pedido.</div>
+            </div>
+            <button class="attn-action">Ver conversa</button>
+          </div>
+          <div class="attn-item">
+            <div class="attn-icon danger">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M3 15l4.5-6L11 12l6-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.5 4H17v3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="attn-body">
+              <div class="attn-tag danger">VENDA PERDIDA</div>
+              <div class="attn-title">Padaria Central — Sabão 5L</div>
+              <div class="attn-desc">Motivo: sem estoque no momento da compra</div>
+            </div>
+            <button class="attn-action">Recuperar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Funil comercial</h2>
+          <span class="panel-link">Ver detalhes</span>
+        </div>
+        <div class="funnel-wrap">
+          <div class="funnel-stage">
+            <div class="funnel-top-row"><span class="funnel-name">Leads</span><span class="funnel-value num">428</span></div>
+            <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:100%"></div></div>
+          </div>
+          <div class="funnel-conv">22% avançam para oportunidade</div>
+          <div class="funnel-stage">
+            <div class="funnel-top-row"><span class="funnel-name">Oportunidades</span><span class="funnel-value num">96</span></div>
+            <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:52%"></div></div>
+          </div>
+          <div class="funnel-conv">35% avançam para pedido</div>
+          <div class="funnel-stage">
+            <div class="funnel-top-row"><span class="funnel-name">Pedidos</span><span class="funnel-value num">34</span></div>
+            <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:24%"></div></div>
+          </div>
+        </div>
+        <div class="funnel-total">
+          <span class="label">Valor em aberto no funil</span>
+          <span class="value num">R$ 48.230</span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="cmdk-backdrop" id="cmdkBackdrop">
+  <div class="cmdk">
+    <div class="cmdk-input-row">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M17 17l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="Buscar cliente, pedido, produto..." autofocus>
+      <span class="kbd">esc</span>
+    </div>
+    <div class="cmdk-results">
+      <div class="cmdk-group-label">CLIENTES</div>
+      <div class="cmdk-row">Empresa XYZ <span class="muted">São Paulo, SP</span></div>
+      <div class="cmdk-row">Distribuidora Nova Era <span class="muted">Curitiba, PR</span></div>
+      <div class="cmdk-group-label">PEDIDOS</div>
+      <div class="cmdk-row">#10283 <span class="muted">Empresa XYZ</span></div>
+      <div class="cmdk-group-label">PRODUTOS</div>
+      <div class="cmdk-row">Detergente 5L <span class="muted">1.284 em estoque</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const shell = document.getElementById('shell');
+  document.getElementById('collapseBtn').addEventListener('click', () => shell.classList.toggle('collapsed'));
+
+  let dark = false;
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    dark = !dark;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  });
+
+  const backdrop = document.getElementById('cmdkBackdrop');
+  const openCmdk = () => { backdrop.classList.add('open'); backdrop.querySelector('input').focus(); };
+  const closeCmdk = () => backdrop.classList.remove('open');
+  document.getElementById('openCmdk').addEventListener('click', openCmdk);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) closeCmdk(); });
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openCmdk(); }
+    if (e.key === 'Escape') closeCmdk();
+  });
+
+  document.querySelectorAll('.segmented button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.segmented button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

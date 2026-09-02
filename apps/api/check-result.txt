@@ -1,0 +1,2 @@
+HEALTH 200 {"status":"ok","info":{"database":{"status":"up"},"web":{"status":"up"}},"error":{},"details":{"database":{"status":"up"},"web":{"status":"up"}}}
+LOGIN 201 {"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjbXRqODN1OG4wMDAwOHE5NGY2djJjdTl2IiwiZW1haWwiOiJhZG1pbkBlbXByZXNhLmNvbS5iciIsInJvbGUiOiJBRE1JTiIsInNhbGVzcGVyc29uSWQiOm51bGwsImlhdCI6MTc

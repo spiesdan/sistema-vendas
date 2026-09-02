@@ -1,0 +1,5 @@
+/ -> 404
+/login -> 200
+/dashboard -> 200
+/customers -> 200
+/orders -> 200

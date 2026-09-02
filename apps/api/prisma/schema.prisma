@@ -1,0 +1,1009 @@
+// =========================================================================
+//  COMERCIAL OPS — Schema do banco (Prisma)
+//  Plataforma de gestão comercial integrada a ODVIX ERP + Mercos
+// =========================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================================================================
+//  IDENTIDADE & ACESSO
+// =========================================================================
+
+enum Role {
+  ADMIN
+  GESTOR
+  COMERCIAL
+  REPRESENTANTE
+  ATENDENTE
+  MARKETING
+  FINANCEIRO
+  SUPORTE
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(COMERCIAL)
+  phone        String?
+  avatarUrl    String?
+  active       Boolean   @default(true)
+  lastLoginAt  DateTime?
+
+  salesperson   Salesperson? @relation(fields: [salespersonId], references: [id], onDelete: SetNull)
+  salespersonId String?      @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs     AuditLog[]
+  alertsCreated CustomerAlert[]
+  conversations Conversation[]
+  opportunities Opportunity[]
+  campaigns     Campaign[]
+
+  @@index([role])
+}
+
+// =========================================================================
+//  GEOGRAFIA
+// =========================================================================
+
+model Region {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  @unique
+  createdAt DateTime @default(now())
+
+  cities City[]
+  leads  Lead[]
+}
+
+model City {
+  id        String   @id @default(cuid())
+  name      String
+  state     String   @db.Char(2)
+  regionId  String?
+  region    Region?  @relation(fields: [regionId], references: [id])
+  latitude  Float?
+  longitude Float?
+  potential Decimal? @db.Decimal(14, 2)
+  createdAt DateTime @default(now())
+
+  customers Customer[]
+  leads     Lead[]
+
+  @@unique([name, state])
+  @@index([regionId])
+}
+
+// =========================================================================
+//  CLIENTES
+// =========================================================================
+
+enum CustomerStatus {
+  NOVO
+  ATIVO
+  EM_RISCO
+  INATIVO
+  PERDIDO
+  VIP
+  OCASIONAL
+  LEAD
+}
+
+enum CustomerTier {
+  LOW
+  MEDIUM
+  HIGH
+  VIP
+}
+
+model Customer {
+  id                 String         @id @default(cuid())
+  name               String
+  legalName          String?
+  document           String? // CNPJ/CPF
+  documentType       String?        @default("CNPJ")
+  email              String?
+  phone              String?
+  whatsapp           String?        @unique
+  instagram          String?
+  cityId             String?
+  city               City?          @relation(fields: [cityId], references: [id])
+  address            String?
+  addressNumber      String?
+  neighborhood       String?
+  zipCode            String?
+  complement         String?
+  status             CustomerStatus @default(NOVO)
+  tier               CustomerTier   @default(LOW)
+  score              Int            @default(0) // 0-100 health score
+  reorderProbability Float          @default(0)
+  churnRisk          Float          @default(0)
+
+  // Comercial
+  salespersonId    String?
+  salesperson      Salesperson? @relation(fields: [salespersonId], references: [id])
+  paymentTerm      String?
+  creditLimitTotal Decimal?     @db.Decimal(14, 2)
+  creditLimitUsed  Decimal?     @db.Decimal(14, 2)
+  marginAvailable  Boolean      @default(false)
+
+  // Métricas calculadas (atualizadas por jobs)
+  firstPurchaseAt        DateTime?
+  lastPurchaseAt         DateTime?
+  totalSpent             Decimal   @default(0) @db.Decimal(14, 2)
+  averageTicket          Decimal   @default(0) @db.Decimal(14, 2)
+  purchaseFrequency      Int       @default(0) // dias entre compras
+  orderCount             Int       @default(0)
+  expectedNextPurchaseAt DateTime?
+
+  // Integração (identity resolution)
+  externalIdOdvix  String? @unique
+  externalIdMercos String? @unique
+  sourceSystem     String? @default("ODVIX")
+  optOutWhatsapp   Boolean @default(false) // whatsapp_opt_out
+
+  // LGPD
+  consentAt      DateTime?
+  consentVersion String?
+  anonymized     Boolean   @default(false)
+  anonymizedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders               Order[]
+  events               CustomerEvent[]
+  scores               CustomerScore[]
+  recommendations      CustomerRecommendation[]
+  purchasePatterns     CustomerPurchasePattern[]
+  opportunities        Opportunity[]
+  alerts               CustomerAlert[]
+  campaigns            CampaignRecipient[]
+  conversations        Conversation[]
+  contacts             Contact[]
+  lostSales            LostSale[]
+  automationExecutions AutomationExecution[]
+
+  @@index([cityId])
+  @@index([salespersonId])
+  @@index([status])
+  @@index([lastPurchaseAt])
+}
+
+model Lead {
+  id            String       @id @default(cuid())
+  companyName   String
+  contactName   String?
+  document      String?
+  phone         String?
+  whatsapp      String?      @unique
+  email         String?
+  segment       String? // mercado, supermercado, restaurante, hotel...
+  industry      String?
+  potential     String? // faturamento estimado A/B/C
+  status        LeadStatus   @default(NOVO)
+  source        String? // origem: qrcode, campanha, panfleto, anúncio...
+  cityId        String?
+  city          City?        @relation(fields: [cityId], references: [id])
+  regionId      String?
+  region        Region?      @relation(fields: [regionId], references: [id])
+  salespersonId String?
+  salesperson   Salesperson? @relation(fields: [salespersonId], references: [id])
+
+  firstContactAt DateTime?
+  convertedAt    DateTime?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  opportunity Opportunity?
+  orders      Order[]
+
+  @@index([status])
+  @@index([cityId])
+  @@index([salespersonId])
+}
+
+enum LeadStatus {
+  NOVO
+  CONTATO
+  INTERESSADO
+  NEGOCIACAO
+  PRIMEIRO_PEDIDO
+  CLIENTE_ATIVO
+  PERDIDO
+}
+
+model Contact {
+  id         String    @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  name       String
+  cargo      String?
+  email      String?
+  phone      String?
+  whatsapp   String?
+  main       Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([customerId])
+}
+
+// =========================================================================
+//  PRODUTOS & CATÁLOGO
+// =========================================================================
+
+model ProductCategory {
+  id        String            @id @default(cuid())
+  name      String            @unique
+  parentId  String?
+  parent    ProductCategory?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children  ProductCategory[] @relation("CategoryTree")
+  createdAt DateTime          @default(now())
+
+  products Product[]
+}
+
+model Product {
+  id          String           @id @default(cuid())
+  code        String           @unique // SKU interno
+  name        String
+  description String?
+  categoryId  String?
+  category    ProductCategory? @relation(fields: [categoryId], references: [id])
+  brand       String?
+  unit        String? // UN, CX, PC, LT...
+  packaging   String? // ex: 500ml
+  barcode     String?
+  imageUrl    String?
+  active      Boolean          @default(true)
+  marginPct   Decimal?         @db.Decimal(6, 2)
+
+  // Integração (identity resolution)
+  externalIdOdvix  String? @unique
+  externalIdMercos String? @unique
+  sourceSystem     String? @default("ODVIX")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  prices          Price[]
+  stocks          Stock[]
+  orderItems      OrderItem[]
+  recommendations CustomerRecommendation[]
+
+  @@index([categoryId])
+  @@index([active])
+}
+
+model Price {
+  id            String    @id @default(cuid())
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id])
+  priceTable    String? // default ou nome da tabela
+  value         Decimal   @db.Decimal(14, 2)
+  minQuantity   Int       @default(1)
+  effectiveFrom DateTime  @default(now())
+  effectiveTo   DateTime?
+  active        Boolean   @default(true)
+  sourceSystem  String?   @default("ODVIX")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, active])
+}
+
+model Stock {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  quantity     Decimal  @db.Decimal(14, 3)
+  reserved     Decimal  @default(0) @db.Decimal(14, 3)
+  warehouse    String?  @default("principal")
+  sourceSystem String?  @default("ODVIX")
+  syncedAt     DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, warehouse])
+  @@index([productId])
+}
+
+// =========================================================================
+//  PEDIDOS
+// =========================================================================
+
+enum OrderSource {
+  WHATSAPP_AI
+  WHATSAPP_HUMAN
+  WEB
+  CAMPAIGN
+  REPRESENTATIVE
+  MANUAL
+}
+
+enum OrderStatus {
+  ORCAMENTO
+  PENDENTE
+  CONFIRMADO
+  ENVIADO_ERP
+  FATURADO
+  PARCIAL
+  CANCELADO
+  PROBLEMA
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  number     Int?        @unique
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  source     OrderSource @default(MANUAL)
+  status     OrderStatus @default(PENDENTE)
+
+  subtotal     Decimal @default(0) @db.Decimal(14, 2)
+  discount     Decimal @default(0) @db.Decimal(14, 2)
+  total        Decimal @default(0) @db.Decimal(14, 2)
+  paymentTerm  String?
+  observations String?
+
+  // Origem e responsável
+  salespersonId  String?
+  salesperson    Salesperson?  @relation(fields: [salespersonId], references: [id])
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  campaignId     String?
+  campaign       Campaign?     @relation(fields: [campaignId], references: [id])
+  leadId         String?
+  lead           Lead?         @relation(fields: [leadId], references: [id])
+
+  // Integração
+  externalIdOdvix  String?   @unique
+  externalIdMercos String?   @unique
+  erpStatus        String?
+  erpSyncAt        DateTime?
+  billedAt         DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items     OrderItem[]
+  lostSale  LostSale?
+  auditLogs AuditLog[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([salespersonId])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Decimal @db.Decimal(14, 3)
+  unitPrice Decimal @db.Decimal(14, 2)
+  discount  Decimal @default(0) @db.Decimal(14, 2)
+  total     Decimal @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, productId])
+  @@index([productId])
+}
+
+// =========================================================================
+//  VENDEDORES / REPRESENTANTES
+// =========================================================================
+
+model Salesperson {
+  id       String  @id @default(cuid())
+  name     String
+  code     String? @unique
+  email    String? @unique
+  phone    String?
+  whatsapp String?
+  active   Boolean @default(true)
+
+  // Integração
+  externalIdOdvix  String? @unique
+  externalIdMercos String? @unique
+  sourceSystem     String? @default("ODVIX")
+
+  user      User?
+  userId    String?    @unique
+  customers Customer[]
+  orders    Order[]
+  leads     Lead[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+}
+
+// =========================================================================
+//  ATENDIMENTO / CONVERSA (WhatsApp)
+// =========================================================================
+
+enum ConversationStatus {
+  BOT_ACTIVE
+  HUMAN_ACTIVE
+  CLOSED
+  WAITING_HUMAN
+}
+
+model Conversation {
+  id             String             @id @default(cuid())
+  customerId     String?
+  customer       Customer?          @relation(fields: [customerId], references: [id])
+  whatsapp       String
+  status         ConversationStatus @default(BOT_ACTIVE)
+  assignedUserId String?
+  assignedUser   User?              @relation(fields: [assignedUserId], references: [id])
+  channel        String             @default("WHATSAPP")
+  priority       Int                @default(0)
+  queue          String? // NOVOS_LEADS, CLIENTES, NEGOCIACAO, PEDIDOS, FINANCEIRO...
+  metadata       Json?
+  botEnabled     Boolean            @default(true)
+
+  firstMessageAt DateTime @default(now())
+  lastMessageAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  messages Message[]
+  orders   Order[]
+
+  @@index([customerId])
+  @@index([status])
+  @@index([whatsapp])
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   Conversation     @relation(fields: [conversationId], references: [id])
+  direction      MessageDirection @default(INBOUND)
+  type           MessageType      @default(TEXT)
+  content        String
+  metadata       Json?
+  acknowledged   Boolean          @default(false)
+  sentAt         DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId])
+  @@index([sentAt])
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+  SYSTEM
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  DOCUMENT
+  AUDIO
+  LOCATION
+  CONTACT
+  BUTTON
+  ORDER
+  TEMPLATE
+}
+
+// =========================================================================
+//  CAMPANHAS & RECIPIENTES
+// =========================================================================
+
+enum CampaignType {
+  REATIVACAO
+  PROMOCAO
+  LANCAMENTO
+  ANIVERSARIO
+  REPOSICAO
+  CROSS_SELL
+  VIP
+  RECUPERACAO_VENDAS
+}
+
+enum AttMessageStatus {
+  PENDING
+  SENT
+  READ
+  REPLIED
+  FAILED
+  OPT_OUT
+}
+
+model Campaign {
+  id                     String         @id @default(cuid())
+  name                   String
+  type                   CampaignType   @default(REPOSICAO)
+  topic                  String? // titulo usado no WhatsApp
+  message                String
+  messageVariables       Json?
+  filters                Json? // criterios de segmentação
+  status                 CampaignStatus @default(DRAFT)
+  scheduledFor           DateTime?
+  sentAt                 DateTime?
+  createdById            String?
+  createdBy              User?          @relation(fields: [createdById], references: [id])
+  maxMessagesPerCustomer Int            @default(1)
+  intervalMin            Int            @default(0)
+  onlyWorkHours          Boolean        @default(true)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  recipients CampaignRecipient[]
+  orders     Order[]
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  FINISHED
+  CANCELLED
+}
+
+model CampaignRecipient {
+  id          String           @id @default(cuid())
+  campaignId  String
+  campaign    Campaign         @relation(fields: [campaignId], references: [id])
+  customerId  String
+  customer    Customer         @relation(fields: [customerId], references: [id])
+  status      AttMessageStatus @default(PENDING)
+  messageId   String? // id da mensagem enviada no WhatsApp
+  response    String?
+  contactedAt DateTime?
+  repliedAt   DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@unique([campaignId, customerId])
+  @@index([customerId])
+  @@index([status])
+}
+
+// =========================================================================
+//  AUTOMAÇÕES & WORKFLOWS
+// =========================================================================
+
+enum AutomationType {
+  REPOSICAO
+  INATIVOS
+  QUEDA_CONSUMO
+  RECUPERACAO
+  CROSS_SELL
+  LEAD_NURTURE
+  CUSTOM
+}
+
+enum AutomationStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+model Automation {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  type        AutomationType   @default(CUSTOM)
+  status      AutomationStatus @default(DRAFT)
+  trigger     Json // condições SE/QUANDO
+  actions     Json // ações ENTÃO
+  config      Json?
+  enabled     Boolean          @default(true)
+  createdById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  executions AutomationExecution[]
+}
+
+model AutomationExecution {
+  id           String                    @id @default(cuid())
+  automationId String
+  automation   Automation                @relation(fields: [automationId], references: [id])
+  customerId   String?
+  customer     Customer?                 @relation(fields: [customerId], references: [id])
+  status       AutomationExecutionStatus @default(PENDING)
+  triggeredAt  DateTime                  @default(now())
+  finishedAt   DateTime?
+  result       Json?
+  error        String?
+
+  @@index([automationId])
+  @@index([status])
+  @@index([triggeredAt])
+}
+
+enum AutomationExecutionStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+// =========================================================================
+//  EVENTOS / TIMELINE DO CLIENTE
+// =========================================================================
+
+enum CustomerEventType {
+  PURCHASE
+  ORDER
+  MESSAGE
+  CONTACT
+  CAMPAIGN
+  RESPONSE
+  NEGOTIATION
+  COMPLAINT
+  CADASTRAL_CHANGE
+  STATUS_CHANGE
+  SCORE_CHANGE
+  SYSTEM
+}
+
+model CustomerEvent {
+  id          String            @id @default(cuid())
+  customerId  String
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  type        CustomerEventType @default(SYSTEM)
+  title       String
+  description String?
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+
+  @@index([customerId, createdAt])
+  @@index([type])
+}
+
+// =========================================================================
+//  INTELIGÊNCIA — SCORE, RECOMENDAÇÃO, PADRÕES
+// =========================================================================
+
+model CustomerScore {
+  id                     String    @id @default(cuid())
+  customerId             String
+  customer               Customer  @relation(fields: [customerId], references: [id])
+  healthScore            Int       @default(0) // 0-100
+  churnRisk              Float     @default(0) // 0-1
+  reorderProbability     Float     @default(0) // 0-1
+  expectedNextPurchaseAt DateTime?
+  expectedValue          Decimal?  @db.Decimal(14, 2)
+  factors                Json? // composição do score
+  computedAt             DateTime  @default(now())
+
+  @@index([customerId, computedAt])
+}
+
+enum RecommendationType {
+  REPOSICAO
+  CROSS_SELL
+  UP_SELL
+}
+
+model CustomerRecommendation {
+  id         String               @id @default(cuid())
+  customerId String
+  customer   Customer             @relation(fields: [customerId], references: [id])
+  productId  String
+  product    Product              @relation(fields: [productId], references: [id])
+  type       RecommendationType   @default(REPOSICAO)
+  reason     String?
+  confidence Float                @default(0)
+  status     RecommendationStatus @default(PENDING)
+  createdAt  DateTime             @default(now())
+
+  @@index([customerId, status])
+  @@index([productId])
+}
+
+enum RecommendationStatus {
+  PENDING
+  OFFERED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model CustomerPurchasePattern {
+  id              String   @id @default(cuid())
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id])
+  avgIntervalDays Int
+  avgTicket       Decimal  @db.Decimal(14, 2)
+  monthlyAverage  Decimal  @db.Decimal(14, 2)
+  categoryShare   Json?
+  productShare    Json?
+  seasonality     Json?
+  churnRisk       Float    @default(0)
+  computedAt      DateTime @default(now())
+
+  @@index([customerId])
+}
+
+// =========================================================================
+//  OPORTUNIDADES, VENDAS PERDIDAS, ALERTAS
+// =========================================================================
+
+enum OpportunityStatus {
+  ABERTA
+  EM_NEGOCIACAO
+  GANHA
+  PERDIDA
+  PARADA
+}
+
+model Opportunity {
+  id              String            @id @default(cuid())
+  customerId      String?
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  leadId          String?           @unique
+  lead            Lead?             @relation(fields: [leadId], references: [id])
+  title           String
+  description     String?
+  value           Decimal?          @db.Decimal(14, 2)
+  status          OpportunityStatus @default(ABERTA)
+  source          String? // cross-sell, up-sell, campanha, lead...
+  assignedUserId  String?
+  assignedUser    User?             @relation(fields: [assignedUserId], references: [id])
+  expectedCloseAt DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+  @@index([assignedUserId])
+}
+
+enum LostSaleReason {
+  PRECO
+  PRAZO
+  ESTOQUE
+  CONCORRENCIA
+  SEM_RESPOSTA
+  DESISTENCIA
+  CONDICAO_PAGAMENTO
+  OUTRO
+}
+
+model LostSale {
+  id          String         @id @default(cuid())
+  orderId     String?        @unique
+  order       Order?         @relation(fields: [orderId], references: [id])
+  customerId  String?
+  customer    Customer?      @relation(fields: [customerId], references: [id])
+  reason      LostSaleReason @default(OUTRO)
+  description String?
+  value       Decimal?       @db.Decimal(14, 2)
+  recovered   Boolean        @default(false)
+  recoveredAt DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([customerId])
+  @@index([reason])
+  @@index([createdAt])
+}
+
+enum AlertType {
+  CLIENTE_INATIVO
+  CLIENTE_EM_RISCO
+  QUEDA_CONSUMO
+  PEDIDO_ABANDONADO
+  LEAD_SEM_ATENDIMENTO
+  OPORTUNIDADE_SEM_CONTATO
+  PRODUTO_SEM_ESTOQUE
+  VIP_SEM_COMPRA
+  RECLAMACAO
+  PEDIDO_PARADO
+  INTEGRACAO_FALHOU
+}
+
+enum AlertSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+model CustomerAlert {
+  id          String        @id @default(cuid())
+  customerId  String?
+  customer    Customer?     @relation(fields: [customerId], references: [id])
+  type        AlertType
+  severity    AlertSeverity @default(MEDIUM)
+  status      AlertStatus   @default(OPEN)
+  title       String
+  description String?
+  metadata    Json?
+  createdById String?
+  createdBy   User?         @relation(fields: [createdById], references: [id])
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+  @@index([type])
+}
+
+// =========================================================================
+//  WHATSAPP / MENSAGENS
+// =========================================================================
+
+model WhatsAppAccount {
+  id              String    @id @default(cuid())
+  name            String
+  provider        String    @default("EVOLUTION") // evolution-api, wppconnect, twilio...
+  instanceName    String    @unique
+  apiUrl          String
+  apiToken        String?
+  webhookSecret   String?
+  enabled         Boolean   @default(false)
+  status          String    @default("DISCONNECTED")
+  lastConnectedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  integrations Integration[]
+}
+
+// =========================================================================
+//  INTEGRAÇÕES ODVIX / MERCOS
+// =========================================================================
+
+enum IntegrationProvider {
+  ODVIX
+  MERCOS
+  WHATSAPP
+  OTHER
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  SYNCING
+}
+
+model Integration {
+  id                String              @id @default(cuid())
+  provider          IntegrationProvider
+  name              String
+  enabled           Boolean             @default(false)
+  sourceSystem      String              @default("ODVIX")
+  config            Json?
+  status            IntegrationStatus   @default(DISCONNECTED)
+  lastSyncAt        DateTime?
+  lastSyncAtStart   DateTime?
+  lastSyncError     String?
+  whatsappAccountId String?
+  whatsappAccount   WhatsAppAccount?    @relation(fields: [whatsappAccountId], references: [id])
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  syncJobs   SyncJob[]
+  integrationLogs IntegrationLog[]
+
+  @@unique([provider, name])
+  @@index([enabled])
+}
+
+model IntegrationLog {
+  id            String       @id @default(cuid())
+  integrationId String?
+  integration   Integration? @relation(fields: [integrationId], references: [id])
+  level         String       @default("info") // info, warn, error, debug
+  endpoint      String?
+  method        String?
+  statusCode    Int?
+  requestData   Json?
+  responseData  Json?
+  error         String?
+  durationMs    Int?
+  createdAt     DateTime     @default(now())
+
+  @@index([integrationId, createdAt])
+  @@index([level])
+}
+
+enum SyncJobType {
+  FULL
+  INCREMENTAL
+  RETRY
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+model SyncJob {
+  id               String        @id @default(cuid())
+  integrationId    String?
+  integration      Integration?  @relation(fields: [integrationId], references: [id])
+  type             SyncJobType   @default(INCREMENTAL)
+  entity           String // CLIENTE, PRODUTO, PEDIDO...
+  status           SyncJobStatus @default(PENDING)
+  recordsProcessed Int           @default(0)
+  recordsCreated   Int           @default(0)
+  recordsUpdated   Int           @default(0)
+  errors           Int           @default(0)
+  errorDetails     Json?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  createdAt        DateTime      @default(now())
+
+  @@index([integrationId, status])
+  @@index([entity])
+  @@index([createdAt])
+}
+
+// =========================================================================
+//  AUDITORIA
+// =========================================================================
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  entityType String // Order, Customer, Product...
+  entityId   String?
+  orderId    String?
+  order      Order?   @relation(fields: [orderId], references: [id])
+  action     String // created, updated, deleted, exported
+  changes    Json?
+  ip         String?
+  userAgent  String?
+  source     String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// =========================================================================
+//  CONFIGURAÇÕES
+// =========================================================================
+
+model Setting {
+  key       String   @id
+  value     Json?
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

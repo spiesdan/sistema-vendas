@@ -1,0 +1,25 @@
+{
+  "name": "comercial-ops",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plataforma de gestão comercial, CRM e automação de vendas integrada a ODVIX ERP e Mercos",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev -w @comercial/api\" \"npm run dev -w @comercial/web\"",
+    "build": "npm run build -w @comercial/api && npm run build -w @comercial/web",
+    "db:generate": "npm run db:generate -w @comercial/api",
+    "db:push": "npm run db:push -w @comercial/api",
+    "db:migrate": "npm run db:migrate -w @comercial/api",
+    "db:studio": "npm run db:studio -w @comercial/api",
+    "infra:up": "docker compose up -d --build",
+    "infra:down": "docker compose down",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test -w @comercial/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
